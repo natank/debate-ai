@@ -93,10 +93,12 @@ None. S1 and S2 run without a pause, and S3 runs as soon as both are valid.
 
 - The outer loop starts S1 and S2 together and starts S3 when both are done
   (step 1). S3 never starts on a partial result (FR-5.1).
-- **If one branch is exhausted:** the outer loop stops dispatching, and does not run S3
-  (FR-5.2). The other branch's call is allowed to finish and its valid output
-  is kept, because the cost is already spent. The run ends with a report of
-  which stage failed and which artifacts exist.
+- **If one branch is exhausted:** the outer loop stops and does not run S3
+  (FR-5.2). The run ends with a report of which stage failed and which
+  artifacts exist. _Amended after design step 5, tests 4 and 4b:_ CrewAI ran
+  S1 then S2 without overlap and aborts on the first exhausted stage, so a
+  failed S1 leaves no other artifact, and a failed S2 keeps S1's. Each
+  artifact is written as soon as its stage passes, so nothing finished is lost.
 
 ### 2.4 Writing artifacts
 

@@ -1,15 +1,33 @@
 # Debate AI
 
-We are creating a debate app agentic.
+An agentic debate app. Give it a motion; one debater argues for it, the same
+debater argues against it, and a judge decides which side was more convincing.
 
-## Applicable documents
+## Usage
 
-1.  _docs/agets.yaml and tasks.yaml
+```
+uv sync
+cp .env.example .env        # then set OPENAI_API_KEY
+uv run debate "Cats make better pets than dogs"
+```
 
-2.  _docs/tasks.yaml
-3. workflow: 
-_docs/agentic-systems-and-workflows.md
-3. 
-we should first: define the app objectives based on the appliable documents 1 and 2 above. create a prd document for this app based on 1,2 references
+Each run writes `output/<run_id>/propose.md`, `oppose.md` and `decide.md`.
+Exit code: 0 success, 1 exhausted (retry or time limit reached), 2 failed.
 
-The agentic development will be according to ref 3
+```
+uv run pytest               # no API key or network needed
+```
+
+## Documents
+
+- `_docs/prd.md`: product requirements
+- `_docs/config/agents.yaml`, `_docs/config/tasks.yaml`: agent and task definitions
+- `_docs/agentic-systems-and-workflows.md`: the design process used here
+- `_docs/design/01` to `05`: the design, one file per step of that process
+
+## Layout
+
+- `src/debate_ai/run.py`: outer control loop (motion entry, limits, outcomes)
+- `src/debate_ai/validation.py`: stage output checks (guardrails)
+- `src/debate_ai/artifacts.py`: the `write_artifact` capability
+- `tests/`: fake-LLM tests of the orchestrator and of the CrewAI behavior the design relies on

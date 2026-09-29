@@ -43,3 +43,31 @@ def make_llm(**kw) -> ScriptedLLM:
 
 def make_agent(llm, **kw) -> Agent:
     return Agent(role="r", goal="g", backstory="b", llm=llm, allow_delegation=False, **kw)
+
+
+class StageLLM(BaseLLM):
+    """Per-stage scripts. Each marker in `scripts` has its own reply list, consumed
+    one per call (the last repeats). Records which stage each call belonged to."""
+
+    scripts: dict = {}
+    calls: list = []
+    stages: list = []
+
+    def call(self, messages, *args, **kwargs):
+        text = flatten(messages)
+        self.calls.append(text)
+        for marker, replies in self.scripts.items():
+            if marker in text:
+                n = sum(s == marker for s in self.stages)
+                self.stages.append(marker)
+                return replies[min(n, len(replies) - 1)]
+        raise AssertionError("prompt matched no stage marker")
+
+    def count(self, marker: str) -> int:
+        return sum(s == marker for s in self.stages)
+
+
+def make_stage_llm(scripts: dict) -> StageLLM:
+    llm = StageLLM(model="fake", scripts=scripts)
+    llm.calls, llm.stages = [], []
+    return llm

@@ -125,3 +125,24 @@ def test_5_guardrail_rejects_bad_winner_and_retries_with_the_reason():
     assert result.pydantic.winner == "for"
     assert len(llm.calls) == 2
     assert "invalid verdict" in llm.calls[1]  # the rejection reason reaches the retry
+
+
+def test_5_output_pydantic_plus_guardrail_only_protects_the_first_retry():
+    """Two bad replies in a row: the retry converts to the model before the
+    guardrail runs, so a raw ValidationError escapes after only 2 calls, not
+    the 3 attempts the guardrail was given. The orchestrator therefore uses a
+    guardrail alone and parses the verdict itself."""
+    llm = make_llm(replies=['{"winner":"tie","reasoning":"x"}'])
+    crew, _ = solo(llm, output_pydantic=Verdict, guardrail=verdict_guardrail,
+                   guardrail_max_retries=2)
+    with pytest.raises(ValidationError):
+        crew.kickoff()
+    assert len(llm.calls) == 2
+
+
+def test_5_guardrail_alone_gives_the_full_three_attempts():
+    llm = make_llm(replies=['{"winner":"tie","reasoning":"x"}'])
+    crew, _ = solo(llm, guardrail=verdict_guardrail, guardrail_max_retries=2)
+    with pytest.raises(Exception, match="failed guardrail validation"):
+        crew.kickoff()
+    assert len(llm.calls) == 3
