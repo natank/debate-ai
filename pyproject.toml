@@ -1,0 +1,9 @@
+[project]
+name = "debate-ai"
+version = "0.1.0"
+description = "Agentic debate app: two debaters and a judge"
+requires-python = ">=3.10,<3.14"
+dependencies = ["crewai"]
+
+[dependency-groups]
+dev = ["pytest"]
