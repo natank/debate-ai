@@ -62,14 +62,14 @@ out; revisit if the design grows loops (rebuttal rounds, human review).
 |---|---|---|
 | Configuration: Debater | `debater` agent in `agents.yaml` | One agent serves S1 and S2. `allow_delegation=False`, no tools. |
 | Configuration: Judge | `judge` agent | Same. |
-| S1 Propose | `propose` task | `context=[]` intended, to be proven by test 1. Runs async. |
+| S1 Propose | `propose` task | `context=[]` (test 1 passed). `async_execution` is optional: no overlap was observed (test 4). |
 | S2 Oppose | `oppose` task | `context=[]` intended. Runs async. |
 | S3 Decide | `decide` task | `context=[propose, oppose]`. |
 | Side parameter | `{side}` input, alongside `{motion}` | Replaces the free text in the task description (step 2, section 4). |
-| Verdict shape | `output_pydantic` on `decide` | `winner` restricted to `for` or `against`, plus `reasoning`. |
+| Verdict shape | `output_pydantic` **plus a guardrail** on `decide` | `winner` restricted to `for` or `against`, plus `reasoning`. `output_pydantic` alone fails hard with no retry (test 5), so the guardrail validates first. |
 | Shape validation (step 4) | `guardrail` functions | Word count for S1 and S2. Reasoning length for S3. |
 | Attempts (step 4: 3) | `guardrail_max_retries = 2` | The framework default of 3 would give 4 attempts. |
-| Per-call timeout (60 s) | `max_execution_time` | To be confirmed in test 3. |
+| Per-call timeout (60 s) | Timeout on the LLM client, plus application check | `max_execution_time` raises only after the call returns (test 3), so it is not a cut-off. |
 | No tool loop | `max_iter` set low | Default is 20, which is pointless with no tools. |
 | Artifact writing (step 3) | **Application `write_artifact`, not `output_file`** | See below. |
 
@@ -133,6 +133,25 @@ so no API key or network is needed.
 - CrewAI is therefore kept as the choice, with `context=[]` required on S1
   and S2.
 
+### Results: tests 2–5 (`tests/test_framework_assumptions.py`)
+
+| # | Result | Finding |
+|---|---|---|
+| 2 | **Passed** | One `debater` agent with `memory=False` served two tasks and two consecutive runs; nothing from the first task or run appeared in later prompts. |
+| 3a | **Passed** | `guardrail_max_retries=2` gives exactly 3 model calls, then raises. |
+| 3b | **Assumption failed** | `max_execution_time=1` raised `TimeoutError`, but only after a 2 s blocking call returned. It reports late and does not interrupt. The 60 s per-call limit must be set on the LLM client and checked by the application. |
+| 4 | **Assumption failed** | If S1 is exhausted, the exception aborts `kickoff` and S2 never starts, so S2's output does not exist. If S2 is exhausted, S1's finished output stays readable on the task, and S3 does not run. Step 4, 2.3 expected the other branch's output to be kept in both cases. |
+| 4b | **Not shown** | With a blocking fake and with an async-native fake (`kickoff_async`), S1 and S2 did not overlap; S2 started after S1 finished. Real concurrency is unproven, not disproven. |
+| 5a | **Assumption failed** | `output_pydantic` alone raises `ValidationError` on `winner="tie"` after one call, with no retry. |
+| 5b | **Passed** | `output_pydantic` plus a guardrail rejects the bad reply, retries, and the rejection reason appears in the retry prompt. |
+
+**Consequences for the design**
+
+- **Verdict:** use `output_pydantic` and a guardrail together (mapping table updated).
+- **Timeout:** enforce it outside `max_execution_time` (mapping table updated).
+- **Branch failure:** the run stops at the first exhausted stage. The design's rule "S3 does not run" holds, but "keep the other branch's valid artifact" only holds when S1 finished first. Because the tasks are effectively sequential, S1 always runs first, so a failed S2 keeps S1's artifact, and a failed S1 leaves nothing else. Step 4, 2.3 should be amended to say this. The design still meets FR-5.2.
+- **Concurrency:** not needed for the requirements. Fairness comes from `context=[]` (test 1), not from parallelism. Running S1 then S2 sequentially with isolation is the fallback that step 1 already recorded.
+
 ## 7. Output of step 5
 
 - Mapping table for three candidates (section 2).
@@ -143,8 +162,8 @@ so no API key or network is needed.
 ## 8. Checklist
 
 - [x] The framework mapping names every relationship the application must implement itself (section 5).
-- [ ] Tests 1–5 have been run. Until then this mapping is provisional.
-      Test 1: **passed** (2026-09-29, `tests/test_isolation.py`, CrewAI 1.15.23). Tests 2–5 pending.
+- [x] Tests 1–5 have been run (2026-09-29, CrewAI 1.15.23). Two design assumptions
+      did not hold and the mapping above is updated; see the results below.
 
 ## 9. Design status
 
