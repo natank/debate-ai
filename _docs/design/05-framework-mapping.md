@@ -116,6 +116,23 @@ These are unverified assumptions. Each one can change the choice above.
 | 4 | **Failure in one async branch.** Make S1 always fail its guardrail. Observe what happens to S2's result and to `decide`. | The failure is reported, S3 does not run, and S2's output is retrievable. | Wrap each task in application code. |
 | 5 | **`output_pydantic` on the judge.** A reply outside the `for` or `against` values is rejected and retried, not passed through. | Rejected and retried within the attempt limit. | Validate `winner` in the guardrail instead. |
 
+### Result: test 1 (isolation) — passed
+
+Run with a recording fake LLM that captures the exact messages of every call,
+so no API key or network is needed.
+
+- With `context=[]` on `propose` and `oppose`, S2's prompt never contains
+  S1's marker, and S1's never contains S2's. This holds with `propose` run
+  synchronously and with `async_execution=True`.
+- Control: `decide` receives both markers, so outputs do propagate.
+- Control: without `context=[]`, S1's output does appear in S2's prompt.
+  This confirms the CrewAI default and shows the test can fail.
+- Test 2 (shared agent state) is partly covered: one `debater` agent served
+  both tasks and no leakage appeared. It was run with CrewAI's default agent
+  memory settings and no explicit `memory` setting, so it is not closed.
+- CrewAI is therefore kept as the choice, with `context=[]` required on S1
+  and S2.
+
 ## 7. Output of step 5
 
 - Mapping table for three candidates (section 2).
@@ -127,6 +144,7 @@ These are unverified assumptions. Each one can change the choice above.
 
 - [x] The framework mapping names every relationship the application must implement itself (section 5).
 - [ ] Tests 1–5 have been run. Until then this mapping is provisional.
+      Test 1: **passed** (2026-09-29, `tests/test_isolation.py`, CrewAI 1.15.23). Tests 2–5 pending.
 
 ## 9. Design status
 
