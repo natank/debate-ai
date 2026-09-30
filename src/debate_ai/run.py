@@ -107,6 +107,16 @@ def make_run_id(motion: str, now: Optional[datetime] = None) -> str:
     return f"{now:%Y%m%d-%H%M%S}-{slug}"
 
 
+def unique_run_id(output_dir, run_id: str) -> str:
+    """Return run_id, or run_id-2, run_id-3, ... if that folder already exists, so a
+    run never writes into (and overwrites) another run's folder."""
+    candidate, n = run_id, 1
+    while (Path(output_dir) / candidate).exists():
+        n += 1
+        candidate = f"{run_id}-{n}"
+    return candidate
+
+
 def default_llm_factory(model: str):
     return LLM(model=model, timeout=CALL_TIMEOUT_S, max_completion_tokens=MAX_COMPLETION_TOKENS)
 
@@ -125,7 +135,7 @@ def run_debate(
     if not motion:  # FR-1.3: no model call, no folder
         return RunResult("failed", motion, reason="the motion is empty")
 
-    run_id = make_run_id(motion, now)
+    run_id = unique_run_id(output_dir, make_run_id(motion, now))
     result = RunResult("failed", motion, run_id=run_id)
     write_errors: dict[str, str] = {}
     completed: list[str] = []

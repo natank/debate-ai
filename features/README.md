@@ -170,12 +170,14 @@ the start of a session.
 
 | # | Feature | Tier | State |
 |---|---|---|---|
-| | _(none yet)_ | | |
+| 001 | [Batch and bias summary](001-batch-and-bias/) | complex | Delivered (real-model check done by the user, 6 debates) |
+| 002 | Swapped-order judge check (separates debater bias from ordering effects; adds a second judge call and a step 2 change) | not set | Backlog (no folder until work starts) |
 
-States: Proposed, Story approved, Design approved, Planned (all gates passed), In delivery, Delivered, Dropped.
+States: Backlog, Proposed, Story approved, Design approved, Planned (all gates passed), In delivery, Delivered, Dropped.
 
 **Work that predates this process** (not migrated unless noted): the core app
 (PRD, `_docs/design/01` to `05`, orchestrator, CLI) and the run report (PRD
 O7 and FR-7, design 04 section 2.5a). The batch and bias summary (PRD O8 and
-FR-8, `_docs/design/06`) was documented but not built; it is the first
-feature to move into this structure.
+FR-8, `_docs/design/06`) was documented but not built. It was migrated into
+`001-batch-and-bias/` and its PRD entries wait there until delivery. The
+drafts remain on the unmerged branch `docs/batch-and-bias` for reference only.

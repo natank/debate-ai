@@ -63,6 +63,40 @@ def test_opposition_never_receives_the_proposition(tmp_path):
     assert "ZX-FOR-MARKER" in judge_prompt and "QW-AGAINST-MARKER" in judge_prompt
 
 
+# ---- unique run folders -----------------------------------------------------
+
+def test_two_identical_motions_in_the_same_second_get_separate_folders(tmp_path):
+    same_second = datetime(2026, 9, 30, 12, 0, 0)
+    first, _ = run(tmp_path, good_scripts(), now=same_second)
+    second, _ = run(tmp_path, good_scripts(), now=same_second)
+    third, _ = run(tmp_path, good_scripts(), now=same_second)
+    assert [first.run_id, second.run_id, third.run_id] == [
+        "20260930-120000-cats-make-better-pets-than-dogs",
+        "20260930-120000-cats-make-better-pets-than-dogs-2",
+        "20260930-120000-cats-make-better-pets-than-dogs-3",
+    ]
+    for r in (first, second, third):
+        assert r.outcome == "success"
+        assert sorted(p.name for p in (tmp_path / r.run_id).iterdir()) == [
+            "decide.md", "oppose.md", "propose.md"
+        ]
+
+
+def test_motions_sharing_a_long_prefix_do_not_collide(tmp_path):
+    same_second = datetime(2026, 9, 30, 12, 0, 0)
+    prefix = "Social media does more harm than good for "
+    a, _ = run(tmp_path, good_scripts(), motion=prefix + "teenagers", now=same_second)
+    b, _ = run(tmp_path, good_scripts(), motion=prefix + "adults", now=same_second)
+    assert a.run_id != b.run_id
+    assert (tmp_path / a.run_id / "propose.md").exists() and (tmp_path / b.run_id / "propose.md").exists()
+
+
+def test_a_folder_that_exists_only_by_name_is_not_reused(tmp_path):
+    (tmp_path / "20260930-120000-cats-make-better-pets-than-dogs").mkdir()
+    result, _ = run(tmp_path, good_scripts(), now=datetime(2026, 9, 30, 12, 0, 0))
+    assert result.run_id.endswith("-dogs-2")
+
+
 # ---- entry ----------------------------------------------------------------------
 
 @pytest.mark.parametrize("motion", ["", "   ", "\n\t"])
@@ -216,3 +250,58 @@ def test_an_exhausted_run_still_reports_the_attempts_it_used(tmp_path):
     assert result.stats["oppose"].total_tokens == 420
     assert "decide" not in result.stats
     assert result.total.attempts == 4
+
+
+# ---- write_summary contract (feature 001) ------------------------------------
+
+from debate_ai.artifacts import write_summary, write_summary_with_retry  # noqa: E402
+
+
+@pytest.mark.parametrize("batch_id", ["", "../x", "a/b", "..", "a..b", ".hidden", "x" * 101])
+def test_write_summary_rejects_unsafe_batch_ids(tmp_path, batch_id):
+    with pytest.raises(InvalidArgument):
+        write_summary(tmp_path, batch_id, "text")
+    assert list(tmp_path.iterdir()) == []
+
+
+def test_write_summary_rejects_empty_content(tmp_path):
+    with pytest.raises(InvalidArgument):
+        write_summary(tmp_path, "b1", "  \n")
+    assert list(tmp_path.iterdir()) == []
+
+
+def test_write_summary_path_is_derived_and_replace_is_idempotent(tmp_path):
+    a = write_summary(tmp_path, "b1", "first")
+    assert a.path == tmp_path / "batch-b1" / "summary.md"
+    b = write_summary(tmp_path, "b1", "second")  # a rewrite replaces, as each debate does
+    assert b.path == a.path and a.path.read_text() == "second"
+    same = write_summary(tmp_path, "b1", "second")
+    assert same.path.read_text() == "second"
+    assert [p.name for p in (tmp_path / "batch-b1").iterdir()] == ["summary.md"]
+
+
+def test_write_summary_reports_write_failed_and_cleans_up(tmp_path):
+    (tmp_path / "batch-b1").mkdir()
+    os.chmod(tmp_path / "batch-b1", 0o500)
+    try:
+        with pytest.raises(WriteFailed):
+            write_summary(tmp_path, "b1", "hello")
+    finally:
+        os.chmod(tmp_path / "batch-b1", 0o700)
+    assert list((tmp_path / "batch-b1").iterdir()) == []
+
+
+def test_write_summary_retries_only_write_failures(tmp_path, monkeypatch):
+    calls = []
+
+    def flaky(src, dst):
+        calls.append(dst)
+        if len(calls) < 3:
+            raise OSError("busy")
+        return os.rename(src, dst)
+
+    monkeypatch.setattr(artifacts.os, "replace", flaky)
+    art = write_summary_with_retry(tmp_path, "b1", "ok", backoff=0)
+    assert len(calls) == 3 and art.path.read_text() == "ok"
+    with pytest.raises(InvalidArgument):  # a bad argument is not retried
+        write_summary_with_retry(tmp_path, "../bad", "ok", backoff=0)

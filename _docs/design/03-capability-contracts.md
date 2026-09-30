@@ -6,6 +6,8 @@ _Process: `_docs/agentic-systems-and-workflows.md`, Design process, Step 3. No f
 
 ## 1. Capability inventory
 
+_Update (feature 001): a second capability, `write_summary`, was added for batch runs. It is defined in section 9. The reasoning core still requests neither._
+
 Steps 1 and 2 leave exactly one capability beyond reasoning:
 
 | Capability | Needed by | Caller |
@@ -100,3 +102,25 @@ system itself named, and nothing it writes is executed or sent anywhere. The
 
 - [x] Every capability has a contract, including side effects, retry safety and approval.
 - [x] No capability is exposed to a configuration that does not need it.
+
+## 9. Contract: Write summary _(added by feature 001)_
+
+`write_artifact` (section 2) takes a fixed stage name, and a batch summary is
+not a stage. Rather than loosen that contract, a sibling capability was added
+with the same rules. Like `write_artifact`, it is called by application code,
+never by the reasoning core, and is not exposed as a tool.
+
+| Field | Contract |
+|---|---|
+| **Name** | `write_summary` |
+| **Purpose** | Persist a batch's `summary.md`. Rewritten after every debate, so an interrupted batch leaves a valid file. |
+| **Arguments** | `output_dir`; `batch_id`: string, same safety rules as `run_id` (no separators, no `..`, at most 100 characters); `content`: non-empty Markdown. |
+| **Result** | `path`: `<output_dir>/batch-<batch_id>/summary.md`; `bytes`. |
+| **Side effects** | Creates the batch folder if missing, and creates or replaces `summary.md`. Touches nothing else. |
+| **Failure modes** | `InvalidArgument` (unsafe `batch_id`, empty content) and `WriteFailed`, reported as in section 3. |
+| **Retry safety** | Idempotent. The same atomic temporary-file-then-rename write as section 4, so a reader sees the old or the new file, never a partial one. Only `WriteFailed` is retried (3 attempts), never an invalid argument. |
+| **Approval needed** | No. It writes one file under a folder the system named. |
+
+The path is derived, never supplied by the model or the user. The atomic write
+is shared code with `write_artifact`.
+
