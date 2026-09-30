@@ -8,6 +8,37 @@ Design: 02-design.md (Approved, gate 2 passed)
 
 _New under the workflow: the pre-workflow drafts had no delivery plan._
 
+## TL;DR
+
+**What:** run many motions in one command and get one summary of who won, how
+often, and what it cost, so we can see whether the judge favors a side.
+
+**How you use it:** put motions in a text file, one per line. Write `A | B` on
+one line for a pair of opposite motions. Then run:
+
+```
+debate --batch motions.txt [--budget 20000]
+```
+
+**What you get:** a progress line as each debate finishes, and a `summary.md`
+with a row per motion, the for-win rate, whether the judge stayed consistent on
+each pair, and total attempts and tokens. The summary is rewritten after every
+debate, so an interrupted batch still leaves a valid one.
+
+**Boundaries:**
+- Each debate is an ordinary single run. The batch only calls it and never changes how a debate works.
+- It stops once tokens spent reach the budget (default 20,000, about 10 debates). A failed run doesn't stop the batch.
+- It reports rates, not a verdict of bias. The judge always sees the proposition first, so a skew can't be blamed on the debaters alone (the swapped-order check is backlog item 002).
+
+**What gets built:** seven subtasks in one PR. One is a small fix so no run
+overwrites another's folder. The rest are an input parser, a summary writer,
+the summary maths, the batch driver, and the `--batch` flag. An optional real
+check at the end costs about 6,000 tokens.
+
+**Touches existing code in two small places:** `run.py` (unique folders) and
+`cli.py` (the flag). The single run does not depend on the batch.
+
+
 ## Subtasks
 
 | # | Subtask | Acceptance check / test | Depends on | Done |
@@ -83,6 +114,7 @@ See `features/README.md`, section 6. Every item applies.
 - none yet
 
 ## Change log
+- 2026-09-30: added the TL;DR at the top. No change to scope. Still Draft.
 - 2026-09-30: plan review. Fixes P1 to P7 applied. Still Draft, pending gate 3 approval.
 - 2026-09-30: CLI form is the `--batch` flag (design approved). Still Draft.
 - 2026-09-30: recorded the user's decision that subtask 0 ships in the feature's single PR, not on its own. Still Draft.
