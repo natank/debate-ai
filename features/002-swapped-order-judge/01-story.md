@@ -46,7 +46,7 @@ step 2 of the agent design. There is more than one credible design.
 - More than one judge, a panel, or a different judge model.
 - Statistical significance tests.
 - Explaining *why* the judge's answer flipped.
-- Anything else in `_docs/config`, beyond what this check needs.
+- Anything else in the agent and task config files, beyond what this check needs. (They were in `_docs/config/` when this was written; feature 006 moved them to `src/debate_ai/config/`.)
 
 ## Requirement changes
 Draft wording, as they would read in `_docs/prd.md` at delivery. Not yet in the PRD.

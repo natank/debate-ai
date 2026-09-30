@@ -1,7 +1,7 @@
 # Design Step 5 — Framework Mapping
 
 _Status: Draft · 2026-09-29_
-_Input: design steps 1–4 (`_docs/design/`), `_docs/config/agents.yaml`, `_docs/config/tasks.yaml`._
+_Input: design steps 1–4 (`_docs/design/`), `src/debate_ai/config/agents.yaml`, `src/debate_ai/config/tasks.yaml` (moved there from `_docs/config/` by feature 006)._
 _Process: `_docs/agentic-systems-and-workflows.md`, Design process, Step 5._
 
 ## 1. Candidates and evidence
@@ -172,3 +172,43 @@ so no API key or network is needed.
 Steps 1–5 are done. Steps 1–4 are consistent with the PRD, and this step leaves
 their content unchanged. The next phase is detailed design and implementation.
 Test 1 should be the first thing built.
+
+## 10. Update (feature 006): the crew is now a `@CrewBase` class
+
+**Decision reversed.** Section 4 above builds the CrewAI objects by hand. The
+crew is now a `@CrewBase` class, `DebateCrew`, in `src/debate_ai/crew.py`, and its
+config lives beside it in `src/debate_ai/config/`. The user asked for it, and it
+follows CrewAI's standard layout. This section did not compare the two options at
+the time; it does now.
+
+**Why the hand-built version was chosen, and why it no longer holds.** The
+worry was that a class-based crew could not carry per-run state (run id, cancel
+flag, artifact saver, token meter), a swappable model for tests, or an optional
+fourth task, and that it might weaken the isolation rule. A prototype showed it
+can carry all of them: the whole test suite passed against it, and every prompt
+sent to the model, every artifact, the stats and the results were identical to
+the hand-built crew's, with the order check off and on.
+
+**How the class does it.**
+
+| Need | How |
+|---|---|
+| Per-run state | Passed to `__init__`. `@CrewBase` creates the instance first, then loads the config and builds the agents. |
+| Swappable model | `__init__` takes a factory. The YAML `llm:` string is never turned into a client. |
+| Optional fourth task | `decide_swapped` is always defined and is added to the crew only with `--check-order`. |
+| Isolation | `context=[]` on `propose` and `oppose`; `decide` reads propose then oppose; `decide_swapped` reads oppose then propose. Tests check the wiring. |
+| Config location | `config/agents.yaml` and `tasks.yaml` beside `crew.py`, the framework's default lookup. A folder can be given for tests. |
+
+**What it costs.** A metaclass with hidden behavior (it loads config and builds
+agents while the instance is created), more indirection, and closer coupling to
+CrewAI's decorator API. There is no user-visible benefit. A recorded baseline
+(`tests/data/crew_baseline.json`) and a parity test guard against any change in
+behavior.
+
+**Unchanged.** The mapping table in section 2: which relationships the framework
+handles and which stay in application code. The outer loop, validation, artifact
+writing, the run report and the order check are still application code in
+`run.py`.
+
+See `features/006-crewbase-and-config/` for the story, design and delivery plan.
+

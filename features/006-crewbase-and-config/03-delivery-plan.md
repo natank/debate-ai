@@ -40,7 +40,7 @@ and the documents that name the old path. `batch.py`, `summary.py`, `cli.py`,
 | 1 | **Move the config; keep the hand-built crew.** `git mv` both YAML files to `src/debate_ai/config/`; point the code at the new folder; update `tests/test_isolation.py`. Add tests: both files exist there and parse with the expected top-level keys; nothing under `src/` mentions `_docs`. | The move is a 100% rename with identical content (`git diff -M --stat`, and matching hashes). All tests pass, including the parity test. A wheel built from the tree contains `debate_ai/config/agents.yaml` and `tasks.yaml` (recorded once). | 0 | [x] |
 | 2 | **Move the shared helpers into `crew.py`.** `MAX_ATTEMPTS`, `RunCancelled`, `StageStats`, the usage meter and the two verdict renderers move with no change to their code. `run.py` imports them, so every existing import still works. | An import test: `debate_ai.run` and `debate_ai.crew` import in either order, and `from debate_ai.run import StageStats, RunResult, run_debate` still works. All tests pass, including the parity test. | 0 | [x] |
 | 3 | **Replace `_build_crew` with the `@CrewBase` class.** `DebateCrew` with `@agent` `debater` and `judge`, `@task` `propose`, `oppose`, `decide` and `decide_swapped`, and a `@crew` method that lists 3 or 4 tasks. `run_debate` builds it. `config_dir` defaults to `None`, which uses the framework's lookup beside the class; a folder is an override. `_build_crew` and the old path constant are removed. | Tests: `DebateCrew` is a `@CrewBase` class; every agent named in `tasks.yaml` has an `@agent` method; the crew has 3 tasks without the check and 4 with it; `propose` and `oppose` have empty context, `decide` reads propose then oppose, `decide_swapped` reads oppose then propose; two crews built in a row share no agents or config; the default lookup works from another working directory; `run_debate` keeps its parameter names. **The parity test and all existing tests pass unchanged.** | 1, 2 | [x] |
-| 4 | **Correct the documents.** Design 05 records that the "build the crew by hand" decision is reversed, and why. Update the config path in README, CLAUDE.md, the PRD source references, design 02, and the feature 002 story; mention `crew.py` in the README layout and CLAUDE.md. | A repository search for `_docs/config` finds only sentences about history. | 3 | [ ] |
+| 4 | **Correct the documents.** Design 05 records that the "build the crew by hand" decision is reversed, and why. Update the config path in README, CLAUDE.md, the PRD source references, design 02, and the feature 002 story; mention `crew.py` in the README layout and CLAUDE.md. | A repository search for `_docs/config` finds only sentences about history. | 3 | [x] |
 | 5 | **Real check.** One real debate with `--check-order`, about 3,000 tokens. Run only with the user's go-ahead. | Manual review: the same kind of output as before (three artifacts plus `decide_swapped.md`, an `Order check:` line, the run report), recorded in Deviations. | 3 | [ ] |
 
 **Order of work.** Subtask 0 first: it must be recorded from the unchanged code, or
@@ -70,12 +70,12 @@ own against the baseline.
 (story, design, plan) are the first commits, then one commit per subtask.
 
 ## Documentation to update (part of delivery)
-- [ ] `_docs/design/05-framework-mapping.md`: the decision to adopt `@CrewBase`, why it reverses the earlier choice, and the path.
-- [ ] `_docs/prd.md`: the config path in the source references [1] and [2]. No requirement changes.
-- [ ] `README.md` and `CLAUDE.md`: the config path, and `crew.py` in the layout.
-- [ ] `_docs/design/02-reasoning-core-configs.md`: the config path.
-- [ ] `features/002-swapped-order-judge/01-story.md`: the reference to the config folder.
-- [ ] `features/README.md`: set this feature's state in the index.
+- [x] `_docs/design/05-framework-mapping.md`: the decision to adopt `@CrewBase`, why it reverses the earlier choice, and the path.
+- [x] `_docs/prd.md`: the config path in the source references [1] and [2]. No requirement changes.
+- [x] `README.md` and `CLAUDE.md`: the config path, and `crew.py` in the layout.
+- [x] `_docs/design/02-reasoning-core-configs.md`: the config path.
+- [x] `features/002-swapped-order-judge/01-story.md`: the reference to the config folder.
+- [x] `features/README.md`: set this feature's state in the index.
 
 ## Definition of Done
 See `features/README.md`, section 6. Every item applies.

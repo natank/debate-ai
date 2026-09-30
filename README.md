@@ -85,13 +85,14 @@ section. The swapped verdict is saved as `decide_swapped.md`.
 ## Documents
 
 - `_docs/prd.md`: product requirements
-- `_docs/config/agents.yaml`, `_docs/config/tasks.yaml`: agent and task definitions
 - `_docs/agentic-systems-and-workflows.md`: the design process used here
 - `_docs/design/01` to `05`: the design, one file per step of that process
 
 ## Layout
 
 - `src/debate_ai/run.py`: outer control loop (motion entry, limits, outcomes)
+- `src/debate_ai/crew.py`: the debate crew, a CrewAI `@CrewBase` class (agents, tasks, guardrails)
+- `src/debate_ai/config/agents.yaml`, `tasks.yaml`: the agent and task definitions the crew loads. They are code, and ship with the package
 - `src/debate_ai/validation.py`: stage output checks (guardrails)
 - `src/debate_ai/artifacts.py`: the `write_artifact` and `write_summary` capabilities
 - `src/debate_ai/batch.py`: batch input parsing and the driver; `summary.py`: the summary builder; `order_check.py`: the order check's result and comparison
