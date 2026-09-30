@@ -171,8 +171,10 @@ the start of a session.
 | # | Feature | Tier | State |
 |---|---|---|---|
 | 001 | [Batch and bias summary](001-batch-and-bias/) | complex | Delivered (real-model check done by the user, 6 debates) |
-| 002 | [Swapped-order judge check](002-swapped-order-judge/) (separates debater bias from ordering effects) | complex | Delivered in code and docs, awaiting PR merge. Real-model check done (user, 6 debates) |
+| 002 | [Swapped-order judge check](002-swapped-order-judge/) (separates debater bias from ordering effects) | complex | Delivered (real-model check done by the user, 6 debates; control run done) |
 | 003 | Same-order repeat judge check (measures how often the judge changes its answer for no reason, the noise control for 002's order check) | not set | Backlog (no folder until work starts) |
+| 004 | Show the swapped winner in the batch summary table, next to the official winner (was Amendment 1 to 002, written but not approved or built; see commit `e029e15`) | not set | Backlog (no folder until work starts) |
+| 005 | Find out where the Against lean comes from: re-judge the saved argument pairs with a different judge model, or regenerate them with a different debater model, or make the two debater prompts symmetric (the debaters and the judge all use `openai/gpt-5.4-mini`, and one model quirk could sit in any role) | not set | Backlog (no folder until work starts) |
 
 States: Backlog, Proposed, Story approved, Design approved, Planned (all gates passed), In delivery, Delivered, Dropped.
 
