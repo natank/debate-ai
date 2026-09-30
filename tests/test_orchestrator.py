@@ -63,6 +63,40 @@ def test_opposition_never_receives_the_proposition(tmp_path):
     assert "ZX-FOR-MARKER" in judge_prompt and "QW-AGAINST-MARKER" in judge_prompt
 
 
+# ---- unique run folders -----------------------------------------------------
+
+def test_two_identical_motions_in_the_same_second_get_separate_folders(tmp_path):
+    same_second = datetime(2026, 9, 30, 12, 0, 0)
+    first, _ = run(tmp_path, good_scripts(), now=same_second)
+    second, _ = run(tmp_path, good_scripts(), now=same_second)
+    third, _ = run(tmp_path, good_scripts(), now=same_second)
+    assert [first.run_id, second.run_id, third.run_id] == [
+        "20260930-120000-cats-make-better-pets-than-dogs",
+        "20260930-120000-cats-make-better-pets-than-dogs-2",
+        "20260930-120000-cats-make-better-pets-than-dogs-3",
+    ]
+    for r in (first, second, third):
+        assert r.outcome == "success"
+        assert sorted(p.name for p in (tmp_path / r.run_id).iterdir()) == [
+            "decide.md", "oppose.md", "propose.md"
+        ]
+
+
+def test_motions_sharing_a_long_prefix_do_not_collide(tmp_path):
+    same_second = datetime(2026, 9, 30, 12, 0, 0)
+    prefix = "Social media does more harm than good for "
+    a, _ = run(tmp_path, good_scripts(), motion=prefix + "teenagers", now=same_second)
+    b, _ = run(tmp_path, good_scripts(), motion=prefix + "adults", now=same_second)
+    assert a.run_id != b.run_id
+    assert (tmp_path / a.run_id / "propose.md").exists() and (tmp_path / b.run_id / "propose.md").exists()
+
+
+def test_a_folder_that_exists_only_by_name_is_not_reused(tmp_path):
+    (tmp_path / "20260930-120000-cats-make-better-pets-than-dogs").mkdir()
+    result, _ = run(tmp_path, good_scripts(), now=datetime(2026, 9, 30, 12, 0, 0))
+    assert result.run_id.endswith("-dogs-2")
+
+
 # ---- entry ----------------------------------------------------------------------
 
 @pytest.mark.parametrize("motion", ["", "   ", "\n\t"])
