@@ -27,7 +27,7 @@ from debate_ai.artifacts import (
 from debate_ai.order_check import OrderCheck, compare_verdicts, not_completed
 from debate_ai.validation import Verdict, argument_guardrail, parse_verdict, verdict_guardrail
 
-CONFIG_DIR = Path(__file__).resolve().parents[2] / "_docs" / "config"
+CONFIG_DIR = Path(__file__).resolve().parent / "config"  # inside the package, so it ships with it
 MAX_ATTEMPTS = 3  # first call plus 2 retries, per stage; 3 stages => at most 9 calls (12 with the order check)
 CALL_TIMEOUT_S = 60
 RUN_TIME_LIMIT_S = 300

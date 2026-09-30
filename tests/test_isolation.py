@@ -9,7 +9,7 @@ import pytest
 import yaml
 from crewai import Agent, BaseLLM, Crew, Process, Task
 
-CONFIG = Path(__file__).resolve().parent.parent / "_docs" / "config"
+CONFIG = Path(__file__).resolve().parent.parent / "src" / "debate_ai" / "config"
 MOTION = "Cats make better pets than dogs"
 MARKER_FOR = "ZX-MARKER-FOR-7f3a"
 MARKER_AGAINST = "QW-MARKER-AGAINST-91cd"
