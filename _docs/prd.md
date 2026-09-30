@@ -44,6 +44,7 @@ Derived from [1] and [2].
 | O5 | Keep every debate output as a readable artifact. | `output_file` on every task [2] |
 | O6 | Run on a configurable LLM, `openai/gpt-5.4-mini` by default. | `llm` on both agents [1] |
 | O7 | Report what each run cost: the attempts used and the tokens spent, per stage and in total. | Not in [1] or [2]. Added 2026-09-30 from NFR-4 and the step 4 retry limits. **Documented after it was first implemented**, which broke the process in [3]. |
+| O8 | Measure whether the judge favors a side, by running many motions in one batch and summarizing the results. | Not in [1] or [2]. Serves the side-bias success metric and NFR-1. Delivered by feature 001 (`features/001-batch-and-bias/`). |
 
 **Success criterion (from [1]):** a debater succeeds when the judge agrees
 with its argument. The product succeeds when both sides get a fair,
@@ -115,6 +116,20 @@ strong case and the verdict is justified by those cases.
 - FR-7.6 A run rejected before any model call (an empty motion) has no stages, so it has no usage lines.
 - FR-7.7 Cost is reported in tokens, not currency. Prices change, and a price table would have to be kept current.
 
+### FR-8: Batch run and bias summary _(feature 001)_
+- FR-8.1 The user can run a batch: a list of motions read from a text file, one debate per motion, run one after another.
+- FR-8.2 A line may declare a **pair** of opposite motions (for example "Remote work is better than office work | Office work is better than remote work"). Pairs let the summary test consistency (FR-8.5).
+- FR-8.3 Each debate in a batch is an ordinary run (FR-1 to FR-7): same limits, same artifacts, same report. A failed or exhausted run is recorded and the batch continues.
+- FR-8.4 The batch stops early, and says so, once the tokens spent have reached a budget (default 20,000), before starting the next debate. Motions not started are listed as skipped. The budget is checked between debates, so a batch can pass it by at most one debate.
+- FR-8.5 The batch writes a summary with:
+  - one row per motion: outcome, winner (for or against), attempts, tokens, and the run folder;
+  - the **for-win rate** over completed runs;
+  - for each pair, whether the judge was **position-consistent** (it picked the same position both times, so the winner flipped from for to against or the reverse) or **not** (it picked the same side of the debate both times);
+  - the totals from FR-7.
+- FR-8.6 The summary states that a skew toward one side cannot be told apart from an ordering effect (see Q8), so it reports a rate and does not assert bias.
+- FR-8.7 A batch with an empty file, or a file with no usable motions, is rejected before any model call.
+- FR-8.8 While a batch runs, one progress line is printed as each debate finishes, showing its position in the batch, the motion, its winner or outcome, and its tokens. A final line gives the completed count, attempts, tokens and the summary path.
+
 ## 7. Non-functional requirements
 
 | ID | Requirement |
@@ -134,7 +149,7 @@ strong case and the verdict is justified by those cases.
 | Verdict names exactly one winning side | 100% |
 | Tokens per debate (from the FR-7 report) | Tracked over a sample of motions. No target set yet. |
 | Verdict gives reasons that refer to the actual arguments | Checked by manual review on a sample set |
-| Side bias: across a balanced motion set, proposition wins ≈ opposition wins | No strong skew toward either side |
+| Side bias: across a balanced motion set, proposition wins ≈ opposition wins | No strong skew toward either side. Measured with the FR-8 batch summary. |
 
 ## 9. Relation to the development process [3]
 
@@ -166,3 +181,5 @@ per-stage design (validation, termination, human interface).
 | Q5 | What is the target length for arguments? | ~200–300 words each. |
 | Q6 | `.env.example` currently holds variables from another project (`PDPA_*`, `MODEL_NAME=gpt-4o-mini`). Which should replace them? | `OPENAI_API_KEY` plus an optional model override matching [1]. |
 | Q7 | The README cites `_docs/agets.yaml`, but the files are at `_docs/config/agents.yaml` and `_docs/config/tasks.yaml`. | Update the README paths. |
+| Q8 | The judge always receives the proposition argument first and the opposition second, so a for-win skew could come from the debaters or from that order. Should the judge also be run with the order swapped? | **Decided:** not in v1. The batch summary reports rates and pair consistency only and says so (FR-8.6). Planned as a later feature (backlog item 002 in `features/README.md`). |
+| Q9 | What should the default batch token budget be? | **Decided:** 20,000 tokens, about 10 debates at the roughly 2,000 measured per debate. Overridable with `--budget`. |

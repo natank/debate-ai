@@ -18,10 +18,13 @@ To resume work, read `features/README.md` (section 8), then the feature's folder
 - Push, open a PR and merge only when the user asks. Work on a feature branch.
 - Never commit `.env`. The repo is public.
 - Run tests with `uv run pytest` (no API key or network needed). A real debate
-  (`uv run debate "<motion>"`) calls the OpenAI API and costs money; run one only when asked.
+  (`uv run debate "<motion>"`, or `--batch`) calls the OpenAI API and costs money; run one only when asked.
+- When trying the CLI's error paths by hand, set `OPENAI_API_KEY` to a dummy value first and
+  write each command out in full. In zsh an unquoted variable is not split into arguments, so a
+  test of `--batch FILE` can turn into a real one-motion debate.
 
 ## Where things are
 
 - `_docs/prd.md`: requirements as delivered. `_docs/design/`: the original agent-system design.
-- `src/debate_ai/`: `run.py` (outer loop), `validation.py`, `artifacts.py`, `cli.py`.
+- `src/debate_ai/`: `run.py` (outer loop), `validation.py`, `artifacts.py`, `cli.py`, and `batch.py` and `summary.py` (batch runs).
 - `_docs/config/`: `agents.yaml` and `tasks.yaml`.

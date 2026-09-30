@@ -80,12 +80,12 @@ are the first commits on the branch, and the code and documentation updates
 follow.
 
 ## Documentation to update (part of delivery)
-- [ ] `_docs/prd.md`: add O8, FR-8 (**8.1 to 8.8**, including the progress lines), the resolved Q8 and Q9 as decided in the story (later feature 002; 20,000-token budget), and the note on the side-bias metric, exactly as written in the story.
-- [ ] `_docs/design/03-capability-contracts.md`: add the `write_summary` contract.
-- [ ] `features/README.md`: also remove backlog item 002 from Backlog only if it has been started; otherwise leave it.
-- [ ] `README.md`: document `debate --batch`, the file format, the budget, and the summary.
-- [ ] `features/README.md`: set this feature's state to Delivered in the index.
-- [ ] `CLAUDE.md`: add `debate --batch` to the commands if it adds anything a new session needs.
+- [x] `_docs/prd.md`: add O8, FR-8 (**8.1 to 8.8**, including the progress lines), the resolved Q8 and Q9 as decided in the story (later feature 002; 20,000-token budget), and the note on the side-bias metric, exactly as written in the story.
+- [x] `_docs/design/03-capability-contracts.md`: add the `write_summary` contract.
+- [x] `features/README.md`: also remove backlog item 002 from Backlog only if it has been started; otherwise leave it.
+- [x] `README.md`: document `debate --batch`, the file format, the budget, and the summary.
+- [x] `features/README.md`: set this feature's state in the index (Delivered in code and docs, awaiting PR merge; subtask 6 not run).
+- [x] `CLAUDE.md`: add `debate --batch` to the commands if it adds anything a new session needs.
 
 ## Review (2026-09-30)
 
