@@ -21,7 +21,7 @@ _New under the workflow: the pre-workflow drafts had no delivery plan._
 | 6 | **Real check.** One small batch (a pair and one single motion) against the real model, to confirm the flow and the summary read sensibly. Costs a few cents; run only with the user's go-ahead. | Manual review of `summary.md` recorded here. | 5 | [ ] |
 
 ## Branch and PR plan
-`feature/001-batch-and-bias`. **One PR** for the whole feature: the subtasks
+`feature/001-batch-and-bias`. **One PR** for the whole feature, including subtask 0 (unique run folders). The user chose on 2026-09-30 not to ship that fix separately. The subtasks are small and only make sense together: the subtasks
 are small and only make sense together. The documents (story, design, plan)
 are the first commits on the branch, and the code and documentation updates
 follow.
@@ -40,6 +40,7 @@ See `features/README.md`, section 6. Every item applies.
 - none yet
 
 ## Change log
+- 2026-09-30: recorded the user's decision that subtask 0 ships in the feature's single PR, not on its own. Still Draft.
 - 2026-09-30: added subtask 0 (unique run folders) and updated subtasks 1 and 4 after the design review. Still Draft.
 - 2026-09-30: subtask 5 now covers progress lines (FR-8.8). Still Draft.
 - 2026-09-30: written during migration. Draft.
