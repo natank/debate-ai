@@ -2,6 +2,9 @@
 
     debate "<motion>"                 one debate
     debate --batch FILE [--budget N]  many debates and a summary (feature 001)
+
+Add --check-order to either form to ask the judge a second time with the two
+arguments in swapped order (feature 002). It adds about 1,000 tokens per debate.
 """
 import argparse
 import sys
@@ -38,6 +41,26 @@ def format_report(result: RunResult) -> list[str]:
     return lines
 
 
+def _check_tag(result: RunResult) -> str:
+    """Short order-check tag for a batch progress line; empty if no check was requested."""
+    check = result.order_check
+    if check is None:
+        return ""
+    return {"stable": "stable", "sensitive": "sensitive"}.get(check.status, "no check")
+
+
+def format_order_check_line(check) -> str:
+    """The `Order check:` line for a single debate (stdout, after the winner)."""
+    if check.status == "stable":
+        return "Order check: stable (the same side won with the arguments in either order)"
+    if check.status == "sensitive":
+        return (
+            f"Order check: order-sensitive (swapped verdict: {check.swapped.winner.capitalize()}; "
+            f"the judge favored the argument it read {check.favored})"
+        )
+    return f"Order check: not completed ({check.reason})"
+
+
 def format_progress_line(i: int, n: int, motion: str, result: RunResult, width: int = LINE_WIDTH) -> str:
     """`[i/N] <motion> ..... <winner or outcome>  <tokens> tokens`, at most `width` wide.
     A long motion is shortened with `...`; the full motion is in the summary."""
@@ -46,6 +69,9 @@ def format_progress_line(i: int, n: int, motion: str, result: RunResult, width: 
     else:
         label = f"{result.outcome} ({result.stage})" if result.stage else result.outcome
     right = f"{label:<8} {result.total.total_tokens:,} tokens"
+    tag = _check_tag(result)
+    if tag:
+        right += f"  {tag}"
     left = f"[{i}/{n}] {' '.join(motion.split())}"
     room = width - len(right) - 5  # a space, at least three dots, a space
     if len(left) > room:
@@ -74,8 +100,8 @@ def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="debate",
         description='Run a debate on a motion, or a batch of motions with --batch.',
-        usage='debate "<motion>" [--output-dir DIR]\n'
-        "       debate --batch FILE [--budget TOKENS] [--output-dir DIR]",
+        usage='debate "<motion>" [--check-order] [--output-dir DIR]\n'
+        "       debate --batch FILE [--budget TOKENS] [--check-order] [--output-dir DIR]",
     )
     parser.add_argument("motion", nargs="?", help="the motion to debate, in quotes")
     parser.add_argument("--batch", metavar="FILE", help="run every motion in FILE and write a summary")
@@ -83,17 +109,25 @@ def _build_parser() -> argparse.ArgumentParser:
         "--budget", type=int, default=None, metavar="TOKENS",
         help=f"with --batch: stop once this many tokens are spent (default {DEFAULT_BUDGET:,})",
     )
+    parser.add_argument(
+        "--check-order", action="store_true",
+        help="ask the judge again with the two arguments in swapped order (about 1,000 extra tokens per debate)",
+    )
     parser.add_argument("--output-dir", default="output", help="where run folders go")
     return parser
 
 
-def _run_single(motion: str, output_dir: str) -> int:
-    result = run_debate(motion, output_dir=output_dir)
+def _run_single(motion: str, output_dir: str, check_order: bool = False) -> int:
+    # Only pass the flag when it was given, so an unflagged run calls run_debate as before.
+    extra = {"check_order": True} if check_order else {}
+    result = run_debate(motion, output_dir=output_dir, **extra)
 
     ok = result.outcome == "success"
     out = sys.stdout if ok else sys.stderr
     if ok:
         print(f"Winner: {result.verdict.winner.capitalize()}")
+        if result.order_check is not None:
+            print(format_order_check_line(result.order_check))
         print(f"Run {result.run_id}:")
     else:
         where = f" at stage '{result.stage}'" if result.stage else ""
@@ -103,7 +137,7 @@ def _run_single(motion: str, output_dir: str) -> int:
     return EXIT[result.outcome]
 
 
-def _run_batch(path: str, budget: int, output_dir: str) -> int:
+def _run_batch(path: str, budget: int, output_dir: str, check_order: bool = False) -> int:
     try:
         entries = read_motions_file(path)
     except BatchInputError as e:
@@ -113,9 +147,11 @@ def _run_batch(path: str, budget: int, output_dir: str) -> int:
     def progress(i, n, entry, result):
         print(format_progress_line(i, n, entry.motion, result), flush=True)
 
+    extra = {"check_order": True} if check_order else {}
     try:
         result = run_batch(
-            entries, output_dir=output_dir, budget=budget, run=run_debate, on_progress=progress
+            entries, output_dir=output_dir, budget=budget, run=run_debate,
+            on_progress=progress, **extra,
         )
     except WriteFailed as e:
         print(f"Could not write the batch summary: {e}", file=sys.stderr)
@@ -144,8 +180,8 @@ def main(argv=None) -> int:
 
     load_dotenv()
     if args.batch is not None:
-        return _run_batch(args.batch, args.budget or DEFAULT_BUDGET, args.output_dir)
-    return _run_single(args.motion, args.output_dir)
+        return _run_batch(args.batch, args.budget or DEFAULT_BUDGET, args.output_dir, args.check_order)
+    return _run_single(args.motion, args.output_dir, args.check_order)
 
 
 if __name__ == "__main__":
