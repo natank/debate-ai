@@ -47,7 +47,7 @@ One line per entry. Blank lines and lines starting with `#` are ignored.
 | **Termination** | **Success:** every motion was attempted. **Stopped early:** the token budget was exceeded, and unstarted motions are listed as skipped. **Failed:** the input was invalid, or the summary could not be written. A run that ends exhausted or failed does **not** end the batch. |
 | **Human interface** | No approvals or questions. The batch prints a progress line as each debate finishes (FR-8.8) and a final line at the end. The user can interrupt it, and results already written stay on disk. |
 
-**Budget rule.** Checked **between** runs against tokens spent so far. It
+**Budget rule.** Default 20,000 tokens (about 10 debates), overridable with `--budget`. Checked **between** runs against tokens spent so far. It
 cannot stop a run in progress, so a batch can exceed the budget by at most one
 debate.
 
@@ -99,7 +99,7 @@ output/
 ### Interface
 
 ```
-debate batch motions.txt [--budget 100000] [--output-dir output]
+debate batch motions.txt [--budget 20000] [--output-dir output]
 ```
 
 The existing `debate "<motion>"` command is unchanged. The examples below are
@@ -208,7 +208,7 @@ to `summary.md`.
 
 | Alternative | Why not |
 |---|---|
-| Two input files (one per position) instead of `A \| B` lines | Pairing by position in two files breaks silently if the files drift. One line keeps a pair together. Open for the user (story, question 1). |
+| Two input files (one per position) instead of `A \| B` lines | Pairing by position in two files breaks silently if the files drift. One line keeps a pair together. Decided by the user on 2026-09-30: one line with `|`. |
 | Also run the judge with the order swapped | Separates debater bias from ordering effects, but needs a second judge call, which is a new reasoning-core configuration and a step 2 change. Deferred (story, out of scope). |
 | Run debates in parallel | Faster, but breaks the between-runs budget check and the usage attribution rule. |
 | Loosen `write_artifact` to accept any file name | Weakens the derived-path safety rule of step 3. A sibling capability keeps both contracts narrow. |
@@ -229,6 +229,7 @@ new depends on framework behavior.
 ## Risks
 | Risk | How it is checked |
 |---|---|
+| The default budget stops a batch at about the 10-run "too few runs" threshold | Documented in the summary line itself. A user who wants a bigger sample passes `--budget`. Tested |
 | A for-win skew is read as debater bias when it is an ordering effect | The summary's fixed limit sentence (FR-8.6), and a test that it appears |
 | The budget is overshot by one debate | Documented. A test shows the third motion is skipped after the budget is passed |
 | A flaky run distorts the win rate | Exhausted and failed runs are excluded from the rate and counted separately. Tested |
@@ -253,10 +254,12 @@ All with the fake model; no network, no API key.
 | Single-motion command | Behaves as before. |
 
 ## Open decisions for review
-1. `A | B` pair syntax versus two files (story, question 1).
-2. Default budget of 100,000 tokens (story, question 2).
-3. Whether the swapped-order judge check becomes its own later feature (story, question 3).
+None. The user's answers on 2026-09-30 settled all three:
+1. Pair syntax: `A | B` on one line.
+2. Default budget: 20,000 tokens.
+3. The swapped-order judge check is a later feature (backlog 002), not part of this design.
 
 ## Change log
+- 2026-09-30: default budget set to 20,000 tokens, and the pair syntax `A | B` confirmed, per the user's answers to the story's open questions. Still Draft.
 - 2026-09-30: replaced the interface section with progress lines (FR-8.8) and mockups of every case. Still Draft, so no gate was reopened.
 - 2026-09-30: migrated from `_docs/design/06` on the pre-workflow branch and reshaped to the template. Content unchanged. Reset to Draft.

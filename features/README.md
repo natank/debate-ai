@@ -170,9 +170,10 @@ the start of a session.
 
 | # | Feature | Tier | State |
 |---|---|---|---|
-| 001 | [Batch and bias summary](001-batch-and-bias/) | complex | Proposed (story Draft) |
+| 001 | [Batch and bias summary](001-batch-and-bias/) | complex | Proposed (story Draft, open questions answered, awaiting approval) |
+| 002 | Swapped-order judge check (separates debater bias from ordering effects; adds a second judge call and a step 2 change) | not set | Backlog (no folder until work starts) |
 
-States: Proposed, Story approved, Design approved, Planned (all gates passed), In delivery, Delivered, Dropped.
+States: Backlog, Proposed, Story approved, Design approved, Planned (all gates passed), In delivery, Delivered, Dropped.
 
 **Work that predates this process** (not migrated unless noted): the core app
 (PRD, `_docs/design/01` to `05`, orchestrator, CLI) and the run report (PRD

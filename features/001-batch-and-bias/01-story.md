@@ -19,7 +19,7 @@ and which one debate cannot answer.
 - [ ] Given a text file of motions, one debate runs per motion, one after another, each as an ordinary run (same limits, artifacts and per-run report).
 - [ ] A line may declare a pair of opposite motions, and pairs are analyzed together.
 - [ ] A run that fails or is exhausted is recorded, and the batch continues.
-- [ ] The batch stops early and says so when total tokens exceed a budget (default 100,000). Motions not started are listed as skipped.
+- [ ] The batch stops early and says so once the tokens spent have reached a budget (default 20,000), before starting the next debate. Motions not started are listed as skipped.
 - [ ] A summary is written with a row per motion, the for-win rate, the pair consistency result, and total attempts and tokens.
 - [ ] The summary states that a skew toward one side cannot be told apart from an ordering effect, and reports rates without claiming bias.
 - [ ] An empty file, or one with no usable motions, is rejected before any model call, as is a malformed line (named by line number).
@@ -43,7 +43,7 @@ As they will read in `_docs/prd.md`. Applied at delivery, not before.
 - FR-8.1 The user can run a batch: a list of motions read from a text file, one debate per motion, run one after another.
 - FR-8.2 A line may declare a **pair** of opposite motions (for example "Remote work is better than office work | Office work is better than remote work"). Pairs let the summary test consistency (FR-8.5).
 - FR-8.3 Each debate in a batch is an ordinary run (FR-1 to FR-7): same limits, same artifacts, same report. A failed or exhausted run is recorded and the batch continues.
-- FR-8.4 The batch stops early, and says so, if its total tokens exceed a budget (default 100,000). Motions not started are listed as skipped.
+- FR-8.4 The batch stops early, and says so, once the tokens spent have reached a budget (default 20,000), before starting the next debate. Motions not started are listed as skipped. The budget is checked between debates, so a batch can pass it by at most one debate.
 - FR-8.5 The batch writes a summary with:
   - one row per motion: outcome, winner (for or against), attempts, tokens, and the run folder;
   - the **for-win rate** over completed runs;
@@ -57,14 +57,18 @@ As they will read in `_docs/prd.md`. Applied at delivery, not before.
 - "Side bias: across a balanced motion set, proposition wins ≈ opposition wins" gains: "Measured with the FR-8 batch summary."
 
 **Open questions to add**
-- **Q8** The judge always receives the proposition argument first and the opposition second. A for-win skew could come from the debaters, or from that order. Should the judge also be run with the order swapped? _Default: not in v1. Report the rate and pair consistency only, and say so (FR-8.6)._
-- **Q9** What should the default token budget be? _Default: 100,000 tokens. At about 2,000 per debate (measured on 2 real runs), that allows roughly 50 debates._
+- **Q8** The judge always receives the proposition argument first and the opposition second. A for-win skew could come from the debaters, or from that order. Should the judge also be run with the order swapped? _Decided 2026-09-30: not in this feature. It is planned as a later feature (backlog item 002 in `features/README.md`). Here the summary reports the rate and pair consistency only, and says so (FR-8.6)._
+- **Q9** _(Resolved 2026-09-30)_ The default token budget is 20,000 tokens. At about 2,000 per debate (measured on 2 real runs), that allows roughly 10 debates. The user can raise it with `--budget`.
 
 ## Open questions
-1. Are pairs written as `A | B` the right way to test consistency, or would you rather supply two files?
-2. Is 100,000 tokens the right default budget?
-3. Should the swapped-order judge check (Q8) be planned as a later feature?
+All three were answered by the user on 2026-09-30:
+1. **Pairs:** one line, written `A | B` (not two files). Resolved.
+2. **Default budget:** 20,000 tokens. Resolved (Q9).
+3. **Swapped-order judge check:** planned as a later feature, not part of this one. Resolved (Q8).
+
+Nothing is open. The story still needs the user's approval (gate 1).
 
 ## Change log
+- 2026-09-30: recorded the user's answers: `A | B` pair lines, a 20,000-token default budget, and the swapped-order judge as a later feature. Budget wording changed from "exceed" to "reach" to match the design's between-runs rule. Story is still Draft.
 - 2026-09-30: added the progress-line criterion and FR-8.8 (found while drafting interface examples for the design). Story is still Draft, so no gate was reopened.
 - 2026-09-30: migrated from the pre-workflow drafts. Content unchanged apart from format. Story reset to Draft so it is re-approved under the new gates.
