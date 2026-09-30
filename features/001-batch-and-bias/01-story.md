@@ -1,9 +1,9 @@
 # 001 — Batch and Bias Summary: Story
 
 ```
-Status: Draft
+Status: Approved
 Tier: complex       (tier approved by the user on 2026-09-30)
-Approved: pending
+Approved: natank (the user), 2026-09-30
 ```
 
 _Migrated from the pre-workflow drafts on branch `docs/batch-and-bias`
@@ -66,9 +66,10 @@ All three were answered by the user on 2026-09-30:
 2. **Default budget:** 20,000 tokens. Resolved (Q9).
 3. **Swapped-order judge check:** planned as a later feature, not part of this one. Resolved (Q8).
 
-Nothing is open. The story still needs the user's approval (gate 1).
+Nothing is open. Story approved by the user on 2026-09-30 (gate 1 passed).
 
 ## Change log
+- 2026-09-30: approved by the user (gate 1). Design work may start.
 - 2026-09-30: recorded the user's answers: `A | B` pair lines, a 20,000-token default budget, and the swapped-order judge as a later feature. Budget wording changed from "exceed" to "reach" to match the design's between-runs rule. Story is still Draft.
 - 2026-09-30: added the progress-line criterion and FR-8.8 (found while drafting interface examples for the design). Story is still Draft, so no gate was reopened.
 - 2026-09-30: migrated from the pre-workflow drafts. Content unchanged apart from format. Story reset to Draft so it is re-approved under the new gates.
