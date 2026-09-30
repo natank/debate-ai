@@ -26,5 +26,5 @@ To resume work, read `features/README.md` (section 8), then the feature's folder
 ## Where things are
 
 - `_docs/prd.md`: requirements as delivered. `_docs/design/`: the original agent-system design.
-- `src/debate_ai/`: `run.py` (outer loop), `validation.py`, `artifacts.py`, `cli.py`, `batch.py` and `summary.py` (batch runs), and `order_check.py` (the order check).
-- `_docs/config/`: `agents.yaml` and `tasks.yaml`.
+- `src/debate_ai/`: `run.py` (outer loop), `crew.py` (the `@CrewBase` crew), `validation.py`, `artifacts.py`, `cli.py`, `batch.py` and `summary.py` (batch runs), and `order_check.py` (the order check).
+- `src/debate_ai/config/`: `agents.yaml` and `tasks.yaml`, which the crew loads. They are code, not documentation.

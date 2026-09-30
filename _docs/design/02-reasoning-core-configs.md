@@ -1,7 +1,7 @@
 # Design Step 2 — Reasoning-Core Configurations
 
 _Status: Draft · 2026-09-29_
-_Input: `_docs/design/01-stages-and-sequence.md`. Sources: `_docs/config/agents.yaml`, `_docs/prd.md`._
+_Input: `_docs/design/01-stages-and-sequence.md`. Sources: `src/debate_ai/config/agents.yaml` (moved there from `_docs/config/` by feature 006), `_docs/prd.md`._
 _Process: `_docs/agentic-systems-and-workflows.md`, Design process, Step 2. No framework is assumed._
 
 ## 1. Configurations

@@ -1,0 +1,95 @@
+{
+ "check_off": {
+  "artifacts": {
+   "decide.md": "# Verdict\n\n**Motion:** Cats make better pets than dogs\n\n**Winner:** For\n\nFIRST-VERDICT The two arguments were weighed on their specific points and one was clearly better. The two arguments were weighed on their specific points and one was clearly better. The two arguments were weighed on their specific points and one was clearly better. The two arguments were weighed on their specific points and one was clearly better.\n",
+   "oppose.md": "# Argument against\n\n**Motion:** Cats make better pets than dogs\n**Side:** Against\n\nQW-AGAINST-MARKER con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con\n",
+   "propose.md": "# Argument in favor\n\n**Motion:** Cats make better pets than dogs\n**Side:** For\n\nZX-FOR-MARKER pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro\n"
+  },
+  "prompts": [
+   "You are A compelling debater\n. You're an experienced debater with a knack for giving concise but convincing arguments. You argue only the side you are assigned, on its own merits, and never state uncertain claims as certain fact. The motion is: Cats make better pets than dogs\n\nYour personal goal is: Present a clear argument either in favor of or against the motion. The motion is: Cats make better pets than dogs. You will be successful if a judge agrees with your argument.\n\nCurrent Task: You are proposing the motion: Cats make better pets than dogs. Come up with a clear argument in favor of the motion. Be very convincing.\n\n\nThis is the expected criteria for your final answer: Your clear argument in favor of the motion, in a concise manner. Plain text, about 200 to 300 words.\n\nyou MUST return the actual complete content as the final answer, not a summary.\n\nProvide your complete response:",
+   "You are A compelling debater\n. You're an experienced debater with a knack for giving concise but convincing arguments. You argue only the side you are assigned, on its own merits, and never state uncertain claims as certain fact. The motion is: Cats make better pets than dogs\n\nYour personal goal is: Present a clear argument either in favor of or against the motion. The motion is: Cats make better pets than dogs. You will be successful if a judge agrees with your argument.\n\nCurrent Task: You are in opposition to the motion: Cats make better pets than dogs. Come up with a clear argument against the motion. Be very convincing.\n\n\nThis is the expected criteria for your final answer: Your clear argument against the motion, in a concise manner. Plain text, about 200 to 300 words.\n\nyou MUST return the actual complete content as the final answer, not a summary.\n\nProvide your complete response:",
+   "You are Decide the winner of the debate based on the arguments presented\n. You are a fair judge with a reputation for weighing up arguments without factoring in your own views, and making a decision based purely on the merits of the argument. You always name exactly one winner, never declare a tie, and never introduce arguments that neither side made. The motion is: Cats make better pets than dogs\n\nYour personal goal is: Given arguments for and against this motion: Cats make better pets than dogs, decide which side is more convincing, based purely on the arguments presented.\n\nCurrent Task: Review the arguments presented by the debaters and decide which side is more convincing. Answer with the winner, \"for\" or \"against\", and your reasoning, which must refer to specific points made in the arguments.\n\n\nThis is the expected criteria for your final answer: A JSON object with \"winner\" (\"for\" or \"against\") and \"reasoning\" (at least 50 words).\n\nyou MUST return the actual complete content as the final answer, not a summary.\n\nThis is the context you're working with:\nZX-FOR-MARKER pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro\n\n----------\n\nQW-AGAINST-MARKER con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con\n\nProvide your complete response:"
+  ],
+  "result": {
+   "order_check": null,
+   "outcome": "success",
+   "verdict": [
+    "for",
+    "FIRST-VERDICT The two arguments were weighed on their specific points and one was clearly better. The two arguments were weighed on their specific points and one was clearly better. The two arguments were weighed on their specific points and one was clearly better. The two arguments were weighed on their specific points and one was clearly better. "
+   ]
+  },
+  "stats": {
+   "decide": [
+    1,
+    100,
+    40,
+    140
+   ],
+   "oppose": [
+    1,
+    100,
+    40,
+    140
+   ],
+   "propose": [
+    1,
+    100,
+    40,
+    140
+   ]
+  }
+ },
+ "check_on": {
+  "artifacts": {
+   "decide.md": "# Verdict\n\n**Motion:** Cats make better pets than dogs\n\n**Winner:** For\n\nFIRST-VERDICT The two arguments were weighed on their specific points and one was clearly better. The two arguments were weighed on their specific points and one was clearly better. The two arguments were weighed on their specific points and one was clearly better. The two arguments were weighed on their specific points and one was clearly better.\n",
+   "decide_swapped.md": "# Verdict (arguments in swapped order)\n\n**Motion:** Cats make better pets than dogs\n\n**Winner:** Against\n\nSECOND-VERDICT The two arguments were weighed on their specific points and one was clearly better. The two arguments were weighed on their specific points and one was clearly better. The two arguments were weighed on their specific points and one was clearly better. The two arguments were weighed on their specific points and one was clearly better.\n\n_This is the order-check verdict, made with the opposition argument read first. The official verdict is in `decide.md`._\n",
+   "oppose.md": "# Argument against\n\n**Motion:** Cats make better pets than dogs\n**Side:** Against\n\nQW-AGAINST-MARKER con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con\n",
+   "propose.md": "# Argument in favor\n\n**Motion:** Cats make better pets than dogs\n**Side:** For\n\nZX-FOR-MARKER pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro\n"
+  },
+  "prompts": [
+   "You are A compelling debater\n. You're an experienced debater with a knack for giving concise but convincing arguments. You argue only the side you are assigned, on its own merits, and never state uncertain claims as certain fact. The motion is: Cats make better pets than dogs\n\nYour personal goal is: Present a clear argument either in favor of or against the motion. The motion is: Cats make better pets than dogs. You will be successful if a judge agrees with your argument.\n\nCurrent Task: You are proposing the motion: Cats make better pets than dogs. Come up with a clear argument in favor of the motion. Be very convincing.\n\n\nThis is the expected criteria for your final answer: Your clear argument in favor of the motion, in a concise manner. Plain text, about 200 to 300 words.\n\nyou MUST return the actual complete content as the final answer, not a summary.\n\nProvide your complete response:",
+   "You are A compelling debater\n. You're an experienced debater with a knack for giving concise but convincing arguments. You argue only the side you are assigned, on its own merits, and never state uncertain claims as certain fact. The motion is: Cats make better pets than dogs\n\nYour personal goal is: Present a clear argument either in favor of or against the motion. The motion is: Cats make better pets than dogs. You will be successful if a judge agrees with your argument.\n\nCurrent Task: You are in opposition to the motion: Cats make better pets than dogs. Come up with a clear argument against the motion. Be very convincing.\n\n\nThis is the expected criteria for your final answer: Your clear argument against the motion, in a concise manner. Plain text, about 200 to 300 words.\n\nyou MUST return the actual complete content as the final answer, not a summary.\n\nProvide your complete response:",
+   "You are Decide the winner of the debate based on the arguments presented\n. You are a fair judge with a reputation for weighing up arguments without factoring in your own views, and making a decision based purely on the merits of the argument. You always name exactly one winner, never declare a tie, and never introduce arguments that neither side made. The motion is: Cats make better pets than dogs\n\nYour personal goal is: Given arguments for and against this motion: Cats make better pets than dogs, decide which side is more convincing, based purely on the arguments presented.\n\nCurrent Task: Review the arguments presented by the debaters and decide which side is more convincing. Answer with the winner, \"for\" or \"against\", and your reasoning, which must refer to specific points made in the arguments.\n\n\nThis is the expected criteria for your final answer: A JSON object with \"winner\" (\"for\" or \"against\") and \"reasoning\" (at least 50 words).\n\nyou MUST return the actual complete content as the final answer, not a summary.\n\nThis is the context you're working with:\nZX-FOR-MARKER pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro\n\n----------\n\nQW-AGAINST-MARKER con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con\n\nProvide your complete response:",
+   "You are Decide the winner of the debate based on the arguments presented\n. You are a fair judge with a reputation for weighing up arguments without factoring in your own views, and making a decision based purely on the merits of the argument. You always name exactly one winner, never declare a tie, and never introduce arguments that neither side made. The motion is: Cats make better pets than dogs\n\nYour personal goal is: Given arguments for and against this motion: Cats make better pets than dogs, decide which side is more convincing, based purely on the arguments presented.\n\nCurrent Task: Review the arguments presented by the debaters and decide which side is more convincing. Answer with the winner, \"for\" or \"against\", and your reasoning, which must refer to specific points made in the arguments.\n\n\nThis is the expected criteria for your final answer: A JSON object with \"winner\" (\"for\" or \"against\") and \"reasoning\" (at least 50 words).\n\nyou MUST return the actual complete content as the final answer, not a summary.\n\nThis is the context you're working with:\nQW-AGAINST-MARKER con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con con\n\n----------\n\nZX-FOR-MARKER pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro pro\n\nProvide your complete response:"
+  ],
+  "result": {
+   "order_check": {
+    "favored": "first",
+    "reason": null,
+    "status": "sensitive",
+    "swapped": "against"
+   },
+   "outcome": "success",
+   "verdict": [
+    "for",
+    "FIRST-VERDICT The two arguments were weighed on their specific points and one was clearly better. The two arguments were weighed on their specific points and one was clearly better. The two arguments were weighed on their specific points and one was clearly better. The two arguments were weighed on their specific points and one was clearly better. "
+   ]
+  },
+  "stats": {
+   "decide": [
+    1,
+    100,
+    40,
+    140
+   ],
+   "decide_swapped": [
+    1,
+    100,
+    40,
+    140
+   ],
+   "oppose": [
+    1,
+    100,
+    40,
+    140
+   ],
+   "propose": [
+    1,
+    100,
+    40,
+    140
+   ]
+  }
+ }
+}

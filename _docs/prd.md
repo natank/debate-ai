@@ -3,8 +3,8 @@
 _Status: Draft v0.1 · 2026-09-29_
 
 **Sources:**
-- [1] `_docs/config/agents.yaml`: agent definitions (`debater`, `judge`)
-- [2] `_docs/config/tasks.yaml`: task definitions (`propose`, `oppose`, `decide`)
+- [1] `src/debate_ai/config/agents.yaml`: agent definitions (`debater`, `judge`)
+- [2] `src/debate_ai/config/tasks.yaml`: task definitions (`propose`, `oppose`, `decide`)
 - [3] `_docs/agentic-systems-and-workflows.md`: the development process (applied after this PRD)
 
 ---
@@ -194,6 +194,6 @@ per-stage design (validation, termination, human interface).
 | Q4 | Should output files be overwritten each run, or kept per debate? | Keep per debate: `output/<timestamp-or-slug>/…`. |
 | Q5 | What is the target length for arguments? | ~200–300 words each. |
 | Q6 | `.env.example` currently holds variables from another project (`PDPA_*`, `MODEL_NAME=gpt-4o-mini`). Which should replace them? | `OPENAI_API_KEY` plus an optional model override matching [1]. |
-| Q7 | The README cites `_docs/agets.yaml`, but the files are at `_docs/config/agents.yaml` and `_docs/config/tasks.yaml`. | Update the README paths. |
+| Q7 | The README cites `_docs/agets.yaml`, but the files are at `_docs/config/agents.yaml` and `_docs/config/tasks.yaml`. (Feature 006 later moved them to `src/debate_ai/config/`.) | Update the README paths. |
 | Q8 | The judge always receives the proposition argument first and the opposition second, so a for-win skew could come from the debaters or from that order. Should the judge also be run with the order swapped? | **Delivered by feature 002:** `--check-order` (FR-9), opt-in. A single swap cannot separate the reading order from ordinary variation between judge calls, so the summary says so. A same-order repeat to measure that variation is backlog item 003 in `features/README.md`. |
 | Q9 | What should the default batch token budget be? | **Decided:** 20,000 tokens, about 10 debates at the roughly 2,000 measured per debate. Overridable with `--budget`. |
