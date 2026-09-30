@@ -16,7 +16,7 @@ _New under the workflow: the pre-workflow drafts had no delivery plan._
 | 2 | **`write_summary` capability.** Atomic, derived-path write of `summary.md`, with the same safety rules as `write_artifact`. | Tests: unsafe `batch_id`, empty content, idempotent replace, cleanup on failure. | - | [ ] |
 | 3 | **Summary computation.** From a list of run results: per-motion rows, for-win rate, pair consistency (four cases), totals, the fixed limit sentence, and the small-sample line. Pure function, no model calls. | Tests: rate with an excluded exhausted run; all four pair cases and the not-analyzed case; limit sentence present; small-sample line under 10 runs. | - | [ ] |
 | 4 | **Batch driver.** Run motions sequentially through `run_debate` into the batch folder, continue past failed runs, check the budget between runs, list skipped motions, and write the summary. | Tests: three succeed; one exhausted continues; budget passed after run two skips run three. | 1, 2, 3 | [ ] |
-| 5 | **CLI `debate batch`.** Arguments `--budget` and `--output-dir`, exit codes 0, 1 and 2. Existing single-motion command unchanged. | CLI tests for each exit code, and a test that `debate "<motion>"` still works. | 4 | [ ] |
+| 5 | **CLI `debate batch`.** Arguments `--budget` and `--output-dir`, exit codes 0, 1 and 2, a progress line as each debate finishes (FR-8.8) and a final line, with the streams as in the design's interface section. Existing single-motion command unchanged. | CLI tests for each exit code; progress line format, shortening and order; stdout and stderr split; and a test that `debate "<motion>"` still works. | 4 | [ ] |
 | 6 | **Real check.** One small batch (a pair and one single motion) against the real model, to confirm the flow and the summary read sensibly. Costs a few cents; run only with the user's go-ahead. | Manual review of `summary.md` recorded here. | 5 | [ ] |
 
 ## Branch and PR plan
@@ -39,4 +39,5 @@ See `features/README.md`, section 6. Every item applies.
 - none yet
 
 ## Change log
+- 2026-09-30: subtask 5 now covers progress lines (FR-8.8). Still Draft.
 - 2026-09-30: written during migration. Draft.

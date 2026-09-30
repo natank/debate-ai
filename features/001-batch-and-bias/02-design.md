@@ -45,7 +45,7 @@ One line per entry. Blank lines and lines starting with `#` are ignored.
 | **Memory** | The driver holds the list of `RunResult`s for the batch. Nothing passes between debates: each run starts with only its own motion. Persisted: `summary.md` and each run's own folder. |
 | **Validation** | The input file is checked before the first call. No validation of debate content beyond what each run already does. |
 | **Termination** | **Success:** every motion was attempted. **Stopped early:** the token budget was exceeded, and unstarted motions are listed as skipped. **Failed:** the input was invalid, or the summary could not be written. A run that ends exhausted or failed does **not** end the batch. |
-| **Human interface** | None. The batch reports at the end. The user can interrupt it, and results already written stay on disk. |
+| **Human interface** | No approvals or questions. The batch prints a progress line as each debate finishes (FR-8.8) and a final line at the end. The user can interrupt it, and results already written stay on disk. |
 
 **Budget rule.** Checked **between** runs against tokens spent so far. It
 cannot stop a run in progress, so a batch can exceed the budget by at most one
@@ -102,7 +102,105 @@ output/
 debate batch motions.txt [--budget 100000] [--output-dir output]
 ```
 
-Exit code: 0 if every motion completed, 1 if any run was exhausted or skipped for budget, 2 if the input was invalid or the summary could not be written. `debate "<motion>"` is unchanged.
+The existing `debate "<motion>"` command is unchanged. The examples below are
+**mockups** of the intended layout. The numbers are made up.
+
+**Input file** (`motions.txt`):
+
+```
+# Pets: a pair, so we can test consistency
+Cats make better pets than dogs | Dogs make better pets than cats
+
+# A single motion
+Remote work is better than office work
+```
+
+**Progress lines** (FR-8.8). One line is printed as each debate finishes:
+
+```
+[i/N] <motion, shortened to fit> ..... <winner or outcome>  <tokens> tokens
+```
+
+- `i/N` counts entries in the file; a pair counts as two.
+- The motion is shortened with `...` so the line fits in 80 columns. The full motion is in the summary.
+- The result is `For` or `Against`, or the outcome and the stage that ended it, for example `exhausted (oppose)` or `failed (propose)`.
+- Progress lines and the final line go to standard output.
+- The reason a batch stopped early, and input errors, go to standard error, following the single-run convention (non-success goes to standard error).
+
+**Complete batch:**
+
+```
+$ debate batch motions.txt
+[1/3] Cats make better pets than dogs ............ For      2,010 tokens
+[2/3] Dogs make better pets than cats ............ Against  1,985 tokens
+[3/3] Remote work is better than office work ..... For      2,040 tokens
+
+Batch 20260930-101500: 3 of 3 completed, 9 attempts, 6,035 tokens
+Summary: output/batch-20260930-101500/summary.md
+```
+
+**A run that fails, and the batch continues:**
+
+```
+[1/3] Cats make better pets than dogs ............ For      2,010 tokens
+[2/3] Dogs make better pets than cats ............ exhausted (oppose)  1,420 tokens
+[3/3] Remote work is better than office work ..... For      2,040 tokens
+
+Batch 20260930-101500: 2 of 3 completed, 1 exhausted, 8 attempts, 5,470 tokens
+Summary: output/batch-20260930-101500/summary.md                      (exit code 1)
+```
+
+**Budget passed** (`--budget 4000`). The check is between runs, so the batch
+can overshoot by one debate:
+
+```
+[1/3] Cats make better pets than dogs ............ For      2,010 tokens
+[2/3] Dogs make better pets than cats ............ Against  1,985 tokens
+Stopped: 3,995 of 4,000 tokens used, next debate could pass the budget. Skipped 1 motion.   (stderr)
+Batch 20260930-101500: 2 of 3 completed, 1 skipped, 6 attempts, 3,995 tokens
+Summary: output/batch-20260930-101500/summary.md                      (exit code 1)
+```
+
+**Bad file:** parsed and validated before any model call:
+
+```
+$ debate batch bad.txt
+Line 3: a pair uses one "|" (found 2). No debates were run.           (exit code 2, stderr)
+```
+
+**Exit codes:** 0 if every motion completed. 1 if any run was exhausted or
+failed, or any motion was skipped for budget. 2 if the input was invalid or the
+summary could not be written.
+
+**`summary.md`:**
+
+```markdown
+# Batch summary
+Batch 20260930-101500 · 3 motions · 3 completed · 6,035 tokens · 9 attempts
+
+| # | Motion                                 | Outcome | Winner  | Attempts | Tokens | Run folder |
+|---|----------------------------------------|---------|---------|----------|--------|------------|
+| 1 | Cats make better pets than dogs        | success | For     | 3        | 2,010  | 20260930-…-cats-… |
+| 2 | Dogs make better pets than cats        | success | Against | 3        | 1,985  | 20260930-…-dogs-… |
+| 3 | Remote work is better than office work | success | For     | 3        | 2,040  | 20260930-…-remote-… |
+
+## For-win rate
+2 of 3 completed runs (67%). Too few runs to conclude anything.
+
+## Pairs
+| Pair        | Result on A | Result on B | Reading                                  |
+|-------------|-------------|-------------|------------------------------------------|
+| Cats / Dogs | For         | Against     | Consistent: sided with "cats" both times |
+
+Consistent pairs: 1 of 1.
+
+## Read this carefully
+A skew toward "for" cannot be told apart from an ordering effect: the judge
+always sees the proposition first. These are rates, not a finding of bias.
+```
+
+Each debate's `propose.md`, `oppose.md` and `decide.md` sit in a subfolder next
+to `summary.md`.
 
 ## Alternatives considered
 
@@ -148,6 +246,8 @@ All with the fake model; no network, no API key.
 | Pair results: (for, against), (for, for), (against, against), and one pair with a failed side | Consistent, not consistent, not consistent, and not analyzed. |
 | Fewer than 10 completed runs | The "too few runs" line is present. |
 | `write_summary` | Rejects unsafe `batch_id` and empty content, is idempotent, and cleans up on failure. |
+| Progress lines | One line per finished debate, in file order, with `i/N`, a shortened motion, the winner or outcome, and tokens. A long motion is shortened to fit 80 columns. A final line gives the counts and the summary path. |
+| Streams | Progress and final lines on standard output. The early-stop reason and input errors on standard error. |
 | Single-motion command | Behaves as before. |
 
 ## Open decisions for review
@@ -156,4 +256,5 @@ All with the fake model; no network, no API key.
 3. Whether the swapped-order judge check becomes its own later feature (story, question 3).
 
 ## Change log
+- 2026-09-30: replaced the interface section with progress lines (FR-8.8) and mockups of every case. Still Draft, so no gate was reopened.
 - 2026-09-30: migrated from `_docs/design/06` on the pre-workflow branch and reshaped to the template. Content unchanged. Reset to Draft.

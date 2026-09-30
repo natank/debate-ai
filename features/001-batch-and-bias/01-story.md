@@ -23,6 +23,7 @@ and which one debate cannot answer.
 - [ ] A summary is written with a row per motion, the for-win rate, the pair consistency result, and total attempts and tokens.
 - [ ] The summary states that a skew toward one side cannot be told apart from an ordering effect, and reports rates without claiming bias.
 - [ ] An empty file, or one with no usable motions, is rejected before any model call, as is a malformed line (named by line number).
+- [ ] While a batch runs, one progress line is printed as each debate finishes, so the terminal is never silent.
 - [ ] The existing `debate "<motion>"` command behaves as before.
 
 ## Out of scope
@@ -50,6 +51,7 @@ As they will read in `_docs/prd.md`. Applied at delivery, not before.
   - the totals from FR-7.
 - FR-8.6 The summary states that a skew toward one side cannot be told apart from an ordering effect (see Q8), so it reports a rate and does not assert bias.
 - FR-8.7 A batch with an empty file, or a file with no usable motions, is rejected before any model call.
+- FR-8.8 While a batch runs, one progress line is printed as each debate finishes, showing its position in the batch, the motion, its winner or outcome, and its tokens. A final line gives the completed count, attempts, tokens and the summary path.
 
 **Success metrics** (changed row)
 - "Side bias: across a balanced motion set, proposition wins ≈ opposition wins" gains: "Measured with the FR-8 batch summary."
@@ -64,4 +66,5 @@ As they will read in `_docs/prd.md`. Applied at delivery, not before.
 3. Should the swapped-order judge check (Q8) be planned as a later feature?
 
 ## Change log
+- 2026-09-30: added the progress-line criterion and FR-8.8 (found while drafting interface examples for the design). Story is still Draft, so no gate was reopened.
 - 2026-09-30: migrated from the pre-workflow drafts. Content unchanged apart from format. Story reset to Draft so it is re-approved under the new gates.
