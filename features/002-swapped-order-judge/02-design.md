@@ -1,8 +1,8 @@
 # 002 — Swapped-Order Judge Check: Design
 
 ```
-Status: Draft
-Approved: pending
+Status: Approved
+Approved: natank (the user), 2026-09-30
 Story: 01-story.md (Approved, gate 1 passed)
 ```
 
@@ -265,6 +265,8 @@ All with the fake model; no network, no API key.
 
 ## Open decisions for review
 
+**Settled by the user's approval of the design on 2026-09-30, as the design has them:** (1) accept the single-swap limit and word the summary honestly, with the same-order repeat recorded as backlog item 003; (2) keep the progress tags and the first/last-read detail. The original text follows for the record.
+
 1. **Noise control.** The risk above means "sensitive" cannot prove an order effect. The complete fix is a third call: the same order again, to measure how often the judge changes its answer for no reason. It would add about 1,000 more tokens per debate. It is **not in the approved story**, so this design does not include it. Options: (a) accept the limit and word the summary honestly, as designed; (b) plan the same-order repeat as a separate backlog item (003). _Recommendation: (a) now, and (b) recorded as a backlog item._
 2. **Batch progress tag** (`stable`, `sensitive`, `no check`) and the `favored first/last` detail go slightly beyond the story's wording. They are cheap and make the result readable. Keep them?
 
@@ -296,5 +298,6 @@ Checked against the approved story and against the code it will change
 for the model, and no change to how S1 to S3 behave.
 
 ## Change log
+- 2026-09-30: approved by the user (gate 2). Both open decisions settled as designed. Backlog item 003 (same-order repeat as a noise control) recorded in the feature index.
 - 2026-09-30: design review. Findings S1 to S7; S2, S3, S4 applied to the design, S1 and S6 put to the user as open decisions, S5 and S7 recorded. Still Draft, pending gate 2.
 - 2026-09-30: drafted from the approved story, with pre-design experiments E1 to E4. Draft, pending review and gate 2.

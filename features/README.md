@@ -171,7 +171,8 @@ the start of a session.
 | # | Feature | Tier | State |
 |---|---|---|---|
 | 001 | [Batch and bias summary](001-batch-and-bias/) | complex | Delivered (real-model check done by the user, 6 debates) |
-| 002 | [Swapped-order judge check](002-swapped-order-judge/) (separates debater bias from ordering effects) | complex | Story approved (gate 1); design in review (gate 2) |
+| 002 | [Swapped-order judge check](002-swapped-order-judge/) (separates debater bias from ordering effects) | complex | Story and design approved (gates 1 and 2); plan in review (gate 3) |
+| 003 | Same-order repeat judge check (measures how often the judge changes its answer for no reason, the noise control for 002's order check) | not set | Backlog (no folder until work starts) |
 
 States: Backlog, Proposed, Story approved, Design approved, Planned (all gates passed), In delivery, Delivered, Dropped.
 
