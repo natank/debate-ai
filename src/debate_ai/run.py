@@ -24,7 +24,7 @@ from debate_ai.artifacts import (
     run_stages,
     write_with_retry,
 )
-from debate_ai.order_check import OrderCheck, compare_verdicts
+from debate_ai.order_check import OrderCheck, compare_verdicts, not_completed
 from debate_ai.validation import Verdict, argument_guardrail, parse_verdict, verdict_guardrail
 
 CONFIG_DIR = Path(__file__).resolve().parents[2] / "_docs" / "config"
@@ -178,16 +178,21 @@ def run_debate(
     try:
         future.result(timeout=time_limit)
     except FutureTimeout:
-        result.outcome = "exhausted"
         cancelled.set()
+        executor.shutdown(wait=False, cancel_futures=True)
+        if _only_check_missing(check_order, completed, write_errors):
+            return _settle_without_check(result, tasks, "the run's time limit was reached")
+        result.outcome = "exhausted"
         result.reason = f"the run exceeded its {time_limit:g} s limit"
         result.stage = _next_stage(completed, stages)
-        executor.shutdown(wait=False, cancel_futures=True)
         return result  # usage is left as recorded: the abandoned call is still in flight
     except Exception as e:
         result.stage = _next_stage(completed, stages)
         if result.stage:  # tokens from a call that ended in an error, not a check
             meter.record(result.stage, attempt=False)
+        if _only_check_missing(check_order, completed, write_errors):
+            executor.shutdown(wait=False)
+            return _settle_without_check(result, tasks, _check_failure_reason(e))
         result.reason = str(e)
         exhausted = isinstance(e, TimeoutError) or "guardrail validation" in str(e)
         result.outcome = "exhausted" if exhausted else "failed"
@@ -196,6 +201,8 @@ def run_debate(
     executor.shutdown(wait=False)
 
     if write_errors:
+        if check_order and set(write_errors) == {CHECK_STAGE}:
+            return _settle_without_check(result, tasks, "the swapped verdict could not be saved")
         return _with_write_errors(result, write_errors)
     result.outcome = "success"
     result.verdict = parse_verdict(tasks["decide"].output.raw)
@@ -208,6 +215,36 @@ def run_debate(
 def _render_verdict(motion: str, raw: str) -> str:
     v = parse_verdict(raw)
     return render_verdict(motion, v.winner, v.reasoning)
+
+
+def _only_check_missing(check_order: bool, completed: list, write_errors: dict) -> bool:
+    """True when the official verdict is done and safely saved, and only the order check
+    is missing. The check is extra information, so this must never cost the user a
+    good debate (feature 002, FR-9.9): every path that ends a run asks this first."""
+    return (
+        check_order
+        and "decide" in completed
+        and CHECK_STAGE not in completed
+        and set(write_errors) <= {CHECK_STAGE}
+    )
+
+
+def _check_failure_reason(e: Exception) -> str:
+    if "guardrail validation" in str(e):
+        return f"the swapped verdict was rejected {MAX_ATTEMPTS} times"
+    if isinstance(e, TimeoutError):
+        return "the swapped call timed out"
+    return f"the swapped call failed: {str(e)[:150]}"
+
+
+def _settle_without_check(result: RunResult, tasks: dict, reason: str) -> RunResult:
+    """End the run as a success with its official verdict and a check that did not complete."""
+    result.outcome = "success"
+    result.stage = None
+    result.reason = None
+    result.verdict = parse_verdict(tasks["decide"].output.raw)
+    result.order_check = not_completed(reason)
+    return result
 
 
 def _render_swapped(motion: str, raw: str) -> str:
