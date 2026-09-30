@@ -150,13 +150,15 @@ Batch 20260930-101500: 2 of 3 completed, 1 exhausted, 8 attempts, 5,470 tokens
 Summary: output/batch-20260930-101500/summary.md                      (exit code 1)
 ```
 
-**Budget passed** (`--budget 4000`). The check is between runs, so the batch
-can overshoot by one debate:
+**Budget passed** (`--budget 3000`). The batch stops before starting a debate once
+tokens spent have reached the budget. The check is between runs, so it can
+overshoot by one debate: here the second debate started at 2,010 (under 3,000)
+and ended at 3,995:
 
 ```
 [1/3] Cats make better pets than dogs ............ For      2,010 tokens
 [2/3] Dogs make better pets than cats ............ Against  1,985 tokens
-Stopped: 3,995 of 4,000 tokens used, next debate could pass the budget. Skipped 1 motion.   (stderr)
+Stopped: 3,995 tokens used, over the 3,000 budget. Skipped 1 motion.   (stderr)
 Batch 20260930-101500: 2 of 3 completed, 1 skipped, 6 attempts, 3,995 tokens
 Summary: output/batch-20260930-101500/summary.md                      (exit code 1)
 ```
