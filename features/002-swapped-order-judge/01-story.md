@@ -1,9 +1,9 @@
 # 002 — Swapped-Order Judge Check: Story
 
 ```
-Status: Draft
+Status: Approved
 Tier: complex       (tier approved by the user on 2026-09-30)
-Approved: pending
+Approved: natank (the user), 2026-09-30
 ```
 
 _From backlog item 002 and PRD Q8. The wording of the requirement changes
@@ -80,8 +80,9 @@ All five were answered by the user on 2026-09-30, each as proposed:
 
 **One reading of question 1 to confirm at approval:** `--check-order` is accepted both for a single motion and together with `--batch`, where it applies to every debate in the batch. The cost is about 1,000 extra tokens per debate, so with the default 20,000-token budget a checked batch covers about 6 or 7 debates instead of about 10. A larger `--budget` is the way around that.
 
-Nothing else is open. The story still needs the user's approval (gate 1).
+Nothing else is open. Story approved by the user on 2026-09-30 (gate 1 passed).
 
 ## Change log
+- 2026-09-30: approved by the user (gate 1). Design work may start.
 - 2026-09-30: recorded the user's answers to all five questions (each as proposed), including approval of the complex tier. Added the `--check-order` flag, the official-verdict rule, the failed-check rule and FR-9.8 to 9.10. Story is still Draft: gate 1 needs the user's explicit approval.
 - 2026-09-30: story drafted from backlog item 002. Draft, awaiting the user's answers and approval (gate 1).
