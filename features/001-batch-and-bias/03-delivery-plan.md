@@ -84,7 +84,7 @@ follow.
 - [x] `_docs/design/03-capability-contracts.md`: add the `write_summary` contract.
 - [x] `features/README.md`: also remove backlog item 002 from Backlog only if it has been started; otherwise leave it.
 - [x] `README.md`: document `debate --batch`, the file format, the budget, and the summary.
-- [x] `features/README.md`: set this feature's state in the index (Delivered in code and docs, awaiting PR merge; real-model check done).
+- [x] `features/README.md`: set this feature's state in the index (Delivered; real-model check done).
 - [x] `CLAUDE.md`: add `debate --batch` to the commands if it adds anything a new session needs.
 
 ## Review (2026-09-30)
