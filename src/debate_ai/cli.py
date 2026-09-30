@@ -8,12 +8,14 @@ import sys
 
 from dotenv import load_dotenv
 
-from debate_ai.artifacts import STAGES, WriteFailed
+from debate_ai.artifacts import ALL_STAGES, WriteFailed
 from debate_ai.batch import DEFAULT_BUDGET, BatchInputError, BatchResult, read_motions_file, run_batch
 from debate_ai.run import RunResult, StageStats, run_debate
 
 EXIT = {"success": 0, "exhausted": 1, "failed": 2}
 LINE_WIDTH = 80
+# The report's label column is 8 wide; `decide_swapped` would misalign it.
+STAGE_LABELS = {"decide_swapped": "swapped"}
 
 
 def _line(label: str, s: StageStats, path=None) -> str:
@@ -27,9 +29,10 @@ def _line(label: str, s: StageStats, path=None) -> str:
 def format_report(result: RunResult) -> list[str]:
     """Per-stage attempts, tokens and artifact path, then a total."""
     lines = []
-    for stage in STAGES:
+    for stage in ALL_STAGES:
         if stage in result.stats or stage in result.artifacts:
-            lines.append(_line(stage, result.stats.get(stage, StageStats()), result.artifacts.get(stage)))
+            label = STAGE_LABELS.get(stage, stage)
+            lines.append(_line(label, result.stats.get(stage, StageStats()), result.artifacts.get(stage)))
     if result.stats:
         lines.append(_line("total", result.total))
     return lines

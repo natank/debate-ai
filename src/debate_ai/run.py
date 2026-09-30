@@ -17,9 +17,9 @@ from typing import Callable, Literal, Optional
 from crewai import LLM, Agent, Crew, Process, Task
 
 from debate_ai.artifacts import (
-    STAGES,
     render_argument,
     render_verdict,
+    run_stages,
     write_with_retry,
 )
 from debate_ai.validation import Verdict, argument_guardrail, parse_verdict, verdict_guardrail
@@ -135,6 +135,7 @@ def run_debate(
     if not motion:  # FR-1.3: no model call, no folder
         return RunResult("failed", motion, reason="the motion is empty")
 
+    stages = run_stages(False)  # the check_order flag chooses four stages (feature 002)
     run_id = unique_run_id(output_dir, make_run_id(motion, now))
     result = RunResult("failed", motion, run_id=run_id)
     write_errors: dict[str, str] = {}
@@ -173,11 +174,11 @@ def run_debate(
         result.outcome = "exhausted"
         cancelled.set()
         result.reason = f"the run exceeded its {time_limit:g} s limit"
-        result.stage = _next_stage(completed)
+        result.stage = _next_stage(completed, stages)
         executor.shutdown(wait=False, cancel_futures=True)
         return result  # usage is left as recorded: the abandoned call is still in flight
     except Exception as e:
-        result.stage = _next_stage(completed)
+        result.stage = _next_stage(completed, stages)
         if result.stage:  # tokens from a call that ended in an error, not a check
             meter.record(result.stage, attempt=False)
         result.reason = str(e)
@@ -199,8 +200,10 @@ def _render_verdict(motion: str, raw: str) -> str:
     return render_verdict(motion, v.winner, v.reasoning)
 
 
-def _next_stage(completed: list) -> Optional[str]:
-    return next((s for s in STAGES if s not in completed), None)
+def _next_stage(completed: list, stages: tuple) -> Optional[str]:
+    """The first of this run's stages that has not completed. A run uses its own
+    stage list, so a normal run can never name the order-check stage."""
+    return next((s for s in stages if s not in completed), None)
 
 
 def _with_write_errors(result: RunResult, write_errors: dict) -> RunResult:
