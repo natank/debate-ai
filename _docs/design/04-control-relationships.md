@@ -114,6 +114,33 @@ None. S1 and S2 run without a pause, and S3 runs as soon as both are valid.
   re-calling the reasoning core. If it still fails, the run ends as failed.
   Invalid-argument errors are bugs and end the run as failed at once.
 
+### 2.5a Run report (PRD FR-7, added 2026-09-30)
+
+Documented after it was first implemented. The design below is what the code
+does, and it was checked against a real run.
+
+- **Who owns it:** the outer loop. It is not a stage and needs no model call.
+- **What is measured:** per stage, attempts and tokens (prompt, completion,
+  total). Tokens come from the reasoning core's own usage counters.
+- **Attribution rule:** the counters are cumulative and not split by stage.
+  The outer loop snapshots the running total at every validation check, and
+  what accrued since the previous check belongs to the stage being checked.
+  This is correct only because stages run one after another (design step 1,
+  as amended by step 5, test 4b). If stages ever ran at the same time,
+  this rule would misattribute usage and would need to change.
+- **Attempt:** one validation check, so a rejected and retried reply counts as
+  another attempt. An error before validation (a timeout) is not an attempt.
+  Tokens left over from such a call are added to the stage that was running
+  when the run stopped.
+- **Shared model instance:** two configurations may share one instance, so
+  usage is summed over distinct instances, not per configuration.
+- **When it is reported:** always, at the end of the run, including
+  exhausted and failed runs, so an exhausted stage shows what its attempts
+  cost. Success goes to standard output and other outcomes to standard error.
+- **Known gap:** on a wall-clock timeout, the call still in flight is not
+  counted, because the run was reported without waiting for it.
+- **Not in v1:** cost in currency (PRD FR-7.7), and usage stored across runs.
+
 ### 2.5 After the last stage: human review
 
 No review step in v1. The run ends when S3 passes validation and its artifact

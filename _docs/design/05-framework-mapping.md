@@ -100,7 +100,8 @@ This is the starting list for detailed design.
 7. **Error reporting** to the user: stage, reason, and which artifacts exist.
 8. **`agents.yaml` and `tasks.yaml` edits** listed in step 2, section 4
    (side parameter, typo, verdict shape) and the removal of `output_file`.
-9. **Model and token cap** per configuration. The YAML currently sets
+9. **Run report and usage metering** (PRD FR-7, design step 4, 2.5a). CrewAI keeps token usage per LLM instance, not per task or stage (checked in 1.15.23: `get_token_usage_summary` is cumulative per instance), so the application attributes it to stages itself.
+10. **Model and token cap** per configuration. The YAML currently sets
    `openai/gpt-5.4-mini` for both. Confirm that name is valid and set the
    token cap for the length target.
 

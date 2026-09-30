@@ -43,6 +43,7 @@ Derived from [1] and [2].
 | O4 | Produce an **impartial verdict**: which side is more convincing, and why, judged only on the arguments presented. | `decide` [2]; judge role, goal and backstory [1] |
 | O5 | Keep every debate output as a readable artifact. | `output_file` on every task [2] |
 | O6 | Run on a configurable LLM, `openai/gpt-5.4-mini` by default. | `llm` on both agents [1] |
+| O7 | Report what each run cost: the attempts used and the tokens spent, per stage and in total. | Not in [1] or [2]. Added 2026-09-30 from NFR-4 and the step 4 retry limits. **Documented after it was first implemented**, which broke the process in [3]. |
 
 **Success criterion (from [1]):** a debater succeeds when the judge agrees
 with its argument. The product succeeds when both sides get a fair,
@@ -105,6 +106,15 @@ strong case and the verdict is justified by those cases.
 - FR-6.1 Agents and tasks load from `agents.yaml` and `tasks.yaml`, not hard-coded.
 - FR-6.2 The LLM is set per agent (`llm`); the API key comes from the environment (`.env`), never from the repo.
 
+### FR-7: Run report _(added 2026-09-30)_
+- FR-7.1 Every run ends with a report, whatever the outcome, including a run that failed or was exhausted.
+- FR-7.2 For each stage that started, the report gives the **attempts** used and the **tokens** spent (prompt, completion and total).
+- FR-7.3 The report gives a total across stages.
+- FR-7.4 An attempt is a reply that reached validation. A rejected reply that was retried counts as another attempt. A call that ended in an error before validation is not an attempt, but its tokens count toward its stage.
+- FR-7.5 The report lists each artifact's path next to its stage.
+- FR-7.6 A run rejected before any model call (an empty motion) has no stages, so it has no usage lines.
+- FR-7.7 Cost is reported in tokens, not currency. Prices change, and a price table would have to be kept current.
+
 ## 7. Non-functional requirements
 
 | ID | Requirement |
@@ -112,7 +122,7 @@ strong case and the verdict is justified by those cases.
 | NFR-1 Fairness | Both sides get the same agent configuration and the same instructions, apart from which side they take. |
 | NFR-2 Impartiality | The judge is told not to use its own views. Its output must cite the arguments it is weighing. |
 | NFR-3 Conciseness | Each argument is concise, per `expected_output` [2]. A target length will be set in design. |
-| NFR-4 Cost | One run uses one model call per task at minimum (3 total), on a small model by default. |
+| NFR-4 Cost | One run uses one model call per task at minimum (3 total), on a small model by default, and at most 9. FR-7 makes the actual cost visible. |
 | NFR-5 Reproducibility | Output files hold enough to audit a run: the motion, both arguments, and the verdict. |
 | NFR-6 Secrets | The API key is loaded from `.env`, which is excluded from version control. |
 
@@ -122,6 +132,7 @@ strong case and the verdict is justified by those cases.
 |---|---|
 | Run completion rate (valid motion → three output files) | ≥ 95% |
 | Verdict names exactly one winning side | 100% |
+| Tokens per debate (from the FR-7 report) | Tracked over a sample of motions. No target set yet. |
 | Verdict gives reasons that refer to the actual arguments | Checked by manual review on a sample set |
 | Side bias: across a balanced motion set, proposition wins ≈ opposition wins | No strong skew toward either side |
 
