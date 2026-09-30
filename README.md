@@ -14,6 +14,12 @@ uv run debate "Cats make better pets than dogs"
 Each run writes `output/<run_id>/propose.md`, `oppose.md` and `decide.md`.
 Exit code: 0 success, 1 exhausted (retry or time limit reached), 2 failed.
 
+The run report lists, per stage, the attempts used (a rejected reply that was
+retried counts as another attempt), the tokens spent, and the artifact path,
+followed by a total. It is printed for failed runs too, so you can see what an
+exhausted stage cost. Attempts count validated replies; a call that timed out
+is not counted, though its tokens are added to the stage's usage.
+
 ```
 uv run pytest               # no API key or network needed
 ```
