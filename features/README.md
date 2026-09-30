@@ -171,7 +171,7 @@ the start of a session.
 | # | Feature | Tier | State |
 |---|---|---|---|
 | 001 | [Batch and bias summary](001-batch-and-bias/) | complex | Delivered (real-model check done by the user, 6 debates) |
-| 002 | [Swapped-order judge check](002-swapped-order-judge/) (separates debater bias from ordering effects) | complex | Delivered in code and docs except Amendment 1 (swapped winner in the summary): story, design and plan reopened 2026-09-30, awaiting re-approval. Real-model check done (user, 6 debates) |
+| 002 | [Swapped-order judge check](002-swapped-order-judge/) (separates debater bias from ordering effects) | complex | Delivered in code and docs, awaiting PR merge. Real-model check done (user, 6 debates) |
 | 003 | Same-order repeat judge check (measures how often the judge changes its answer for no reason, the noise control for 002's order check) | not set | Backlog (no folder until work starts) |
 
 States: Backlog, Proposed, Story approved, Design approved, Planned (all gates passed), In delivery, Delivered, Dropped.
