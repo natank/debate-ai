@@ -5,8 +5,8 @@ propose:
     Be very convincing.
   expected_output: >
     Your clear argument in favor of the motion, in a concise manner.
+    Plain text, about 200 to 300 words.
   agent: debater
-  output_file: output/propose.md
 
 oppose:
   description: >
@@ -15,13 +15,14 @@ oppose:
     Be very convincing.
   expected_output: >
     Your clear argument against the motion, in a concise manner.
+    Plain text, about 200 to 300 words.
   agent: debater
-  output_file: output/oppose.md
-  
+
 decide:
   description: >
     Review the arguments presented by the debaters and decide which side is more convincing.
+    Answer with the winner, "for" or "against", and your reasoning, which must refer
+    to specific points made in the arguments.
   expected_output: >
-    Your decision on which side is more convincing, and why.
+    A JSON object with "winner" ("for" or "against") and "reasoning" (at least 50 words).
   agent: judge
-  output_file: output/decide.md
