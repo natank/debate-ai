@@ -188,3 +188,31 @@ def test_write_artifact_reports_write_failed_and_cleans_up(tmp_path):
             write_artifact(tmp_path, "r1", "propose", "hello")
     finally:
         os.chmod(tmp_path / "r1", 0o700)
+
+
+# ---- attempts and token usage ----------------------------------------------
+
+def test_stats_record_one_attempt_and_the_tokens_of_each_stage(tmp_path):
+    result, llm = run(tmp_path, good_scripts())
+    for stage in ("propose", "oppose", "decide"):
+        s = result.stats[stage]
+        assert (s.attempts, s.prompt_tokens, s.completion_tokens, s.total_tokens) == (1, 100, 40, 140)
+    # One LLM object is shared by both agents here; it must not be counted twice.
+    assert result.total.attempts == 3 and result.total.total_tokens == 420
+
+
+def test_a_retry_shows_as_two_attempts_and_double_the_tokens(tmp_path):
+    result, _ = run(tmp_path, good_scripts(**{P: ["too short", FOR_TEXT]}))
+    assert result.stats["propose"].attempts == 2
+    assert result.stats["propose"].total_tokens == 280
+    assert result.stats["oppose"].attempts == 1
+
+
+def test_an_exhausted_run_still_reports_the_attempts_it_used(tmp_path):
+    result, _ = run(tmp_path, good_scripts(**{O: ["too short"]}))
+    assert result.outcome == "exhausted"
+    assert result.stats["propose"].attempts == 1
+    assert result.stats["oppose"].attempts == 3
+    assert result.stats["oppose"].total_tokens == 420
+    assert "decide" not in result.stats
+    assert result.total.attempts == 4

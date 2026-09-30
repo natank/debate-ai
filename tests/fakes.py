@@ -60,7 +60,12 @@ class StageLLM(BaseLLM):
             if marker in text:
                 n = sum(s == marker for s in self.stages)
                 self.stages.append(marker)
-                return replies[min(n, len(replies) - 1)]
+                reply = replies[min(n, len(replies) - 1)]
+                # Report usage the way a real provider would: 100 prompt + 40 completion.
+                self._track_token_usage_internal(
+                    {"prompt_tokens": 100, "completion_tokens": 40, "total_tokens": 140}
+                )
+                return reply
         raise AssertionError("prompt matched no stage marker")
 
     def count(self, marker: str) -> int:

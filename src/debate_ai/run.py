@@ -40,6 +40,46 @@ Outcome = Literal["success", "exhausted", "failed"]
 
 
 @dataclass
+class StageStats:
+    """Model calls and tokens for one stage. `attempts` counts validated attempts
+    (one guardrail check each); a call that timed out is not counted."""
+
+    attempts: int = 0
+    prompt_tokens: int = 0
+    completion_tokens: int = 0
+    total_tokens: int = 0
+
+
+class _UsageMeter:
+    """Attributes token usage to stages. CrewAI keeps usage per LLM instance, not per
+    task, so we snapshot the running total at every guardrail check. Stages run one
+    after another, so what accrued since the last check belongs to the current stage."""
+
+    def __init__(self, llms, stats):
+        self._llms = list({id(l): l for l in llms}.values())
+        self._stats = stats
+        self._last = self._totals()
+
+    def _totals(self):
+        fields = ("prompt_tokens", "completion_tokens", "total_tokens")
+        totals = dict.fromkeys(fields, 0)
+        for llm in self._llms:
+            summary = llm.get_token_usage_summary()
+            for f in fields:
+                totals[f] += getattr(summary, f, 0) or 0
+        return totals
+
+    def record(self, stage: str, *, attempt: bool = True) -> None:
+        now = self._totals()
+        stats = self._stats.setdefault(stage, StageStats())
+        if attempt:
+            stats.attempts += 1
+        for f, value in now.items():
+            setattr(stats, f, getattr(stats, f) + value - self._last[f])
+        self._last = now
+
+
+@dataclass
 class RunResult:
     outcome: Outcome
     motion: str
@@ -48,6 +88,17 @@ class RunResult:
     reason: Optional[str] = None
     artifacts: dict = field(default_factory=dict)  # stage -> Path
     verdict: Optional[Verdict] = None
+    stats: dict = field(default_factory=dict)  # stage -> StageStats
+
+    @property
+    def total(self) -> StageStats:
+        total = StageStats()
+        for s in self.stats.values():
+            total.attempts += s.attempts
+            total.prompt_tokens += s.prompt_tokens
+            total.completion_tokens += s.completion_tokens
+            total.total_tokens += s.total_tokens
+        return total
 
 
 def make_run_id(motion: str, now: Optional[datetime] = None) -> str:
@@ -100,7 +151,9 @@ def run_debate(
 
         return callback
 
-    crew, tasks = _build_crew(motion, config_dir, llm_factory, saver, cancelled)
+    crew, tasks, meter = _build_crew(
+        motion, config_dir, llm_factory, saver, cancelled, result.stats
+    )
 
     executor = ThreadPoolExecutor(max_workers=1)
     future = executor.submit(crew.kickoff, inputs={"motion": motion})
@@ -112,9 +165,11 @@ def run_debate(
         result.reason = f"the run exceeded its {time_limit:g} s limit"
         result.stage = _next_stage(completed)
         executor.shutdown(wait=False, cancel_futures=True)
-        return result
+        return result  # usage is left as recorded: the abandoned call is still in flight
     except Exception as e:
         result.stage = _next_stage(completed)
+        if result.stage:  # tokens from a call that ended in an error, not a check
+            meter.record(result.stage, attempt=False)
         result.reason = str(e)
         exhausted = isinstance(e, TimeoutError) or "guardrail validation" in str(e)
         result.outcome = "exhausted" if exhausted else "failed"
@@ -147,24 +202,27 @@ def _with_write_errors(result: RunResult, write_errors: dict) -> RunResult:
     return result
 
 
-def _build_crew(motion, config_dir, llm_factory, saver, cancelled):
+def _build_crew(motion, config_dir, llm_factory, saver, cancelled, stats):
     agents_cfg = yaml.safe_load((config_dir / "agents.yaml").read_text())
     tasks_cfg = yaml.safe_load((config_dir / "tasks.yaml").read_text())
 
+    llms = {name: llm_factory(cfg["llm"]) for name, cfg in agents_cfg.items()}
     agents = {
         name: Agent(
-            **{**cfg, "llm": llm_factory(cfg["llm"])},
+            **{**cfg, "llm": llms[name]},
             allow_delegation=False,
             memory=False,
             verbose=False,
         )
         for name, cfg in agents_cfg.items()
     }
+    meter = _UsageMeter(llms.values(), stats)
 
-    def checked(guardrail):
+    def checked(stage, guardrail):
         def wrapper(output):
             if cancelled.is_set():
                 raise RunCancelled("the run was cancelled after its time limit")
+            meter.record(stage)
             return guardrail(output)
 
         return wrapper
@@ -182,13 +240,13 @@ def _build_crew(motion, config_dir, llm_factory, saver, cancelled):
     propose = task(
         "propose",
         context=[],
-        guardrail=checked(argument_guardrail),
+        guardrail=checked("propose", argument_guardrail),
         callback=saver("propose", lambda out: render_argument(motion, "for", out.raw)),
     )
     oppose = task(
         "oppose",
         context=[],
-        guardrail=checked(argument_guardrail),
+        guardrail=checked("oppose", argument_guardrail),
         callback=saver("oppose", lambda out: render_argument(motion, "against", out.raw)),
     )
     decide = task(
@@ -197,7 +255,7 @@ def _build_crew(motion, config_dir, llm_factory, saver, cancelled):
         # No output_pydantic: with it, only the first bad reply is retried and a
         # second one raises a raw ValidationError (test 5). The guardrail validates
         # the JSON and we parse it ourselves.
-        guardrail=checked(verdict_guardrail),
+        guardrail=checked("decide", verdict_guardrail),
         callback=saver(
             "decide",
             lambda out: _render_verdict(motion, out.raw),
@@ -209,4 +267,4 @@ def _build_crew(motion, config_dir, llm_factory, saver, cancelled):
         process=Process.sequential,
         verbose=False,
     )
-    return crew, {"propose": propose, "oppose": oppose, "decide": decide}
+    return crew, {"propose": propose, "oppose": oppose, "decide": decide}, meter
