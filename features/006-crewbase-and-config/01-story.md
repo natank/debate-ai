@@ -1,9 +1,9 @@
 # 006 — Adopt @CrewBase and Move the Config into the Source: Story
 
 ```
-Status: Draft
-Tier: complex       (proposed by the agent; tier approval pending, see "Proposed tier")
-Approved: pending
+Status: Approved
+Tier: complex       (tier approved by the user on 2026-09-30)
+Approved: natank (the user), 2026-09-30
 ```
 
 _History: this began as a simple feature (move `agents.yaml` and `tasks.yaml` out of
@@ -24,15 +24,14 @@ agents, tasks and config are where CrewAI users expect to find them.
 **This is a refactor. Nothing a user can see may change.** The debate must behave
 exactly as it does today; only how it is assembled and where its config lives change.
 
-## Proposed tier
-**Complex.** Reasons:
+## Tier
+**Complex**, approved by the user on 2026-09-30. Reasons:
 - It overturns a decision recorded in design step 5 (direct construction).
 - It touches the run loop and most of the tests.
 - It puts a core rule at risk if done wrong: the opposition must never see the proposition (NFR-1), and the two judge prompts must differ only in order.
 - It has real design questions: how per-run state (run id, cancel flag, token meter, callbacks) and the swappable fake model reach a class-based crew, how the optional fourth task is included, and how `@CrewBase` treats the `llm:` value in the YAML.
 - It needs feasibility experiments before a design can be trusted.
 
-The user decides the tier.
 
 ## Acceptance criteria
 - [ ] The crew is defined by a `@CrewBase` class with `@agent`, `@task` and `@crew` methods. Its agents and tasks come from `agents.yaml` and `tasks.yaml`.
@@ -54,11 +53,15 @@ The user decides the tier.
 ## Requirement changes
 - none. The PRD's source references [1] and [2] get the new path, which is not a requirement.
 
-## Open questions for the user
-1. **The fallback.** If the design phase finds that `@CrewBase` cannot keep one of the guarantees above (for example the isolation rule, or injecting the fake model), what should happen? _Proposal: stop at the design gate and tell you. The fallback is the smaller feature already drafted: keep the hand-built crew and only move the config into the source._ Do you agree?
-2. **The real check.** One real debate with `--check-order` costs about 3,000 tokens. _Proposal: yes, run it once at the end, with your go-ahead._
-3. **Folder name.** The folder is renamed to `006-crewbase-and-config` to match. _Proposal: yes._
-4. **Tier:** do you agree with complex?
+## Open questions
+All four were answered by the user on 2026-09-30, each as proposed:
+1. **The fallback.** If the design phase finds that `@CrewBase` cannot keep one of the guarantees above (for example the isolation rule, or injecting the fake model), stop at the design gate and tell the user. The fallback is the smaller feature already drafted (`f114c32`): keep the hand-built crew and only move the config into the source. Resolved: yes.
+2. **The real check.** One real debate with `--check-order` (about 3,000 tokens), run once at the end with the user's go-ahead. Resolved: yes.
+3. **Folder name.** `006-crewbase-and-config`. Resolved: yes.
+4. **Tier.** Complex. Resolved: yes.
+
+Nothing is open. Story approved by the user on 2026-09-30 (gate 1 passed).
 
 ## Change log
+- 2026-09-30: approved by the user (gate 1), all four questions answered as proposed. Design work may start.
 - 2026-09-30: rewritten from the simple config-move draft (`f114c32`) after the user asked to also adopt `@CrewBase`. Draft, awaiting the tier decision, the answers above, and approval (gate 1).
