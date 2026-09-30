@@ -51,6 +51,19 @@ feature probably deserves *complex* if it does any of these:
 Otherwise propose *simple*. When unsure, propose *complex*: skipping rigor
 costs more than writing one extra document.
 
+### Feature kind
+
+Each feature also has a **kind**, recorded in its story header:
+
+| Kind | Meaning | PRD |
+|---|---|---|
+| `product` | Functionality a user of Debate AI gets. | Requirements are added to `_docs/prd.md` at delivery. |
+| `tooling` | Development or validation tooling that is not part of the product (for example a batch checker). | **No requirements are added to the PRD.** The story keeps its own feature-local requirements (prefix them, for example `BV-1`, so they cannot be confused with PRD numbers). A one-line pointer in the PRD is allowed where a PRD metric is measured by the tool, if the user approves it. |
+
+A tooling feature must not change production code, and production code must not
+depend on it. Its design states the dependency rule and tests enforce it. Feature
+001 is the model for this.
+
 ## 3. Folder layout and naming
 
 ```
@@ -136,7 +149,8 @@ of delivery, not a follow-up.
 - [ ] All tests pass.
 - [ ] **`_docs/prd.md` is updated** to describe the feature as delivered (new
       or changed FR, NFR, objectives, open questions, success metrics).
-      The PRD must not describe undelivered features as current.
+      The PRD must not describe undelivered features as current. _For a
+      `tooling` feature this item means: no requirements are added (see Feature kind)._
 - [ ] Any design document the feature changed is updated (`_docs/design/`, and
       the README if usage changed).
 - [ ] The delivery plan's checkboxes are all ticked, and any deviation is noted
@@ -170,7 +184,7 @@ the start of a session.
 
 | # | Feature | Tier | State |
 |---|---|---|---|
-| 001 | [Batch and bias summary](001-batch-and-bias/) | complex | Story approved; design in review (gate 2) |
+| 001 | [Batch validation tool (bias summary)](001-batch-and-bias/) | complex, tooling | Reworked: story reopened (gate 1 needs re-approval); design and plan Draft |
 | 002 | Swapped-order judge check (separates debater bias from ordering effects; adds a second judge call and a step 2 change) | not set | Backlog (no folder until work starts) |
 
 States: Backlog, Proposed, Story approved, Design approved, Planned (all gates passed), In delivery, Delivered, Dropped.
@@ -179,5 +193,6 @@ States: Backlog, Proposed, Story approved, Design approved, Planned (all gates p
 (PRD, `_docs/design/01` to `05`, orchestrator, CLI) and the run report (PRD
 O7 and FR-7, design 04 section 2.5a). The batch and bias summary (PRD O8 and
 FR-8, `_docs/design/06`) was documented but not built. It was migrated into
-`001-batch-and-bias/` and its PRD entries wait there until delivery. The
-drafts remain on the unmerged branch `docs/batch-and-bias` for reference only.
+`001-batch-and-bias/` and redefined as a `tooling` feature, so its entries do
+not go into the PRD. The drafts remain on the unmerged branch
+`docs/batch-and-bias` for reference only.
