@@ -16,70 +16,25 @@ from typing import Callable, Literal, Optional
 
 from crewai import LLM, Agent, Crew, Process, Task
 
-from debate_ai.artifacts import (
-    CHECK_STAGE,
-    render_argument,
-    render_swapped_verdict,
-    render_verdict,
-    run_stages,
-    write_with_retry,
+from debate_ai.artifacts import CHECK_STAGE, render_argument, run_stages, write_with_retry
+from debate_ai.crew import (
+    MAX_ATTEMPTS,
+    RunCancelled,
+    StageStats,
+    _render_swapped,
+    _render_verdict,
+    _UsageMeter,
 )
 from debate_ai.order_check import OrderCheck, compare_verdicts, not_completed
 from debate_ai.validation import Verdict, argument_guardrail, parse_verdict, verdict_guardrail
 
 CONFIG_DIR = Path(__file__).resolve().parent / "config"  # inside the package, so it ships with it
-MAX_ATTEMPTS = 3  # first call plus 2 retries, per stage; 3 stages => at most 9 calls (12 with the order check)
 CALL_TIMEOUT_S = 60
 RUN_TIME_LIMIT_S = 300
 MAX_COMPLETION_TOKENS = 1000
 
 
-
-class RunCancelled(RuntimeError):
-    """Raised inside an abandoned run so its worker thread stops."""
-
-
 Outcome = Literal["success", "exhausted", "failed"]
-
-
-@dataclass
-class StageStats:
-    """Model calls and tokens for one stage. `attempts` counts validated attempts
-    (one guardrail check each); a call that timed out is not counted."""
-
-    attempts: int = 0
-    prompt_tokens: int = 0
-    completion_tokens: int = 0
-    total_tokens: int = 0
-
-
-class _UsageMeter:
-    """Attributes token usage to stages. CrewAI keeps usage per LLM instance, not per
-    task, so we snapshot the running total at every guardrail check. Stages run one
-    after another, so what accrued since the last check belongs to the current stage."""
-
-    def __init__(self, llms, stats):
-        self._llms = list({id(l): l for l in llms}.values())
-        self._stats = stats
-        self._last = self._totals()
-
-    def _totals(self):
-        fields = ("prompt_tokens", "completion_tokens", "total_tokens")
-        totals = dict.fromkeys(fields, 0)
-        for llm in self._llms:
-            summary = llm.get_token_usage_summary()
-            for f in fields:
-                totals[f] += getattr(summary, f, 0) or 0
-        return totals
-
-    def record(self, stage: str, *, attempt: bool = True) -> None:
-        now = self._totals()
-        stats = self._stats.setdefault(stage, StageStats())
-        if attempt:
-            stats.attempts += 1
-        for f, value in now.items():
-            setattr(stats, f, getattr(stats, f) + value - self._last[f])
-        self._last = now
 
 
 @dataclass
@@ -212,11 +167,6 @@ def run_debate(
     return result
 
 
-def _render_verdict(motion: str, raw: str) -> str:
-    v = parse_verdict(raw)
-    return render_verdict(motion, v.winner, v.reasoning)
-
-
 def _only_check_missing(check_order: bool, completed: list, write_errors: dict) -> bool:
     """True when the official verdict is done and safely saved, and only the order check
     is missing. The check is extra information, so this must never cost the user a
@@ -245,11 +195,6 @@ def _settle_without_check(result: RunResult, tasks: dict, reason: str) -> RunRes
     result.verdict = parse_verdict(tasks["decide"].output.raw)
     result.order_check = not_completed(reason)
     return result
-
-
-def _render_swapped(motion: str, raw: str) -> str:
-    v = parse_verdict(raw)
-    return render_swapped_verdict(motion, v.winner, v.reasoning)
 
 
 def _next_stage(completed: list, stages: tuple) -> Optional[str]:
