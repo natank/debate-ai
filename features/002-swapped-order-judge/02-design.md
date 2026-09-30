@@ -1,9 +1,9 @@
 # 002 — Swapped-Order Judge Check: Design
 
 ```
-Status: Approved
-Approved: natank (the user), 2026-09-30
-Story: 01-story.md (Approved, gate 1 passed)
+Status: Draft          (reopened 2026-09-30 for Amendment 1; was Approved)
+Approved: pending      (re-approval needed)
+Story: 01-story.md (reopened, needs re-approval first)
 ```
 
 ## Approach
@@ -179,6 +179,41 @@ finding of bias.
 - The **for-win rate** and **pair consistency** use the official verdict only (FR-9.10).
 - Exit codes are unchanged. A check that is not completed does not change the exit code, because the run succeeded.
 
+## Amendment 1 (2026-09-30): the swapped winner in the summary
+
+Serves FR-9.11. It changes only the batch summary, and only when the check was
+requested. Everything else in this design is unchanged.
+
+**Table.** A `Swapped` column goes between `Winner` and `Order check`:
+
+```markdown
+| # | Motion                          | Outcome | Winner  | Swapped | Order check       | Attempts | Tokens | Run folder |
+|---|---------------------------------|---------|---------|---------|-------------------|----------|--------|------------|
+| 1 | Cats make better pets than dogs | success | Against | Against | stable            | 4        | 3,035  | …          |
+| 2 | Dogs make better pets than cats | success | Against | For     | sensitive (last)  | 4        | 3,000  | …          |
+| 3 | Some motion                     | success | For     | -       | not completed     | 3        | 2,100  | …          |
+```
+
+- `Swapped` is the swapped verdict's winner (`For` or `Against`), or `-` when the check did not complete or the debate did not finish.
+- It appears only when the check was requested. A batch without `--check-order` is unchanged, byte for byte (the golden test still applies).
+
+**Where the verdicts are.** The `Order check` section gains one sentence:
+
+```
+Each debate's two verdicts are in its run folder: `decide.md` (official) and `decide_swapped.md` (swapped).
+```
+
+**Data.** Nothing new: `OrderCheck.swapped` already holds the swapped verdict.
+
+**Not included** (open question 1 in the story): quoting each verdict's reasoning
+in the summary. The summary stays compact; the reasoning is in the two files.
+
+**Tests** (added to the test table): the column appears only with the flag, in
+the right position, with `-` for a check that did not complete and for an
+unfinished or pending debate; the swapped winner matches the debate's swapped
+verdict; the pointer sentence is present; the golden summary without the flag is
+unchanged.
+
 ## Alternatives considered
 
 | Alternative | Why not |
@@ -261,6 +296,7 @@ All with the fake model; no network, no API key.
 | CLI batch | `--check-order` reaches every debate; progress tags; exit codes unchanged. |
 | Summary | Column, section and closing paragraph appear only when the flag was used and at least one check completed; otherwise the existing FR-8.6 sentence. For-win rate and pair consistency use official verdicts. |
 | Batch without the flag | Summary and progress lines are byte-for-byte as today. |
+| Swapped winner column (Amendment 1) | Shown only with the flag; `-` when the check did not complete or the debate did not finish; matches the swapped verdict; the pointer sentence to `decide.md` and `decide_swapped.md` is present. |
 | Budget | The extra tokens count toward the batch budget. |
 
 ## Open decisions for review
@@ -298,6 +334,7 @@ Checked against the approved story and against the code it will change
 for the model, and no change to how S1 to S3 behave.
 
 ## Change log
+- 2026-09-30: **reopened for Amendment 1** (the swapped winner in the summary). Status back to Draft; re-approval needed.
 - 2026-09-30: approved by the user (gate 2). Both open decisions settled as designed. Backlog item 003 (same-order repeat as a noise control) recorded in the feature index.
 - 2026-09-30: design review. Findings S1 to S7; S2, S3, S4 applied to the design, S1 and S6 put to the user as open decisions, S5 and S7 recorded. Still Draft, pending gate 2.
 - 2026-09-30: drafted from the approved story, with pre-design experiments E1 to E4. Draft, pending review and gate 2.

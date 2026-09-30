@@ -1,9 +1,9 @@
 # 002 — Swapped-Order Judge Check: Story
 
 ```
-Status: Approved
+Status: Draft          (reopened 2026-09-30 for Amendment 1; was Approved)
 Tier: complex       (tier approved by the user on 2026-09-30)
-Approved: natank (the user), 2026-09-30
+Approved: pending      (re-approval needed)
 ```
 
 _From backlog item 002 and PRD Q8. The wording of the requirement changes
@@ -37,6 +37,7 @@ step 2 of the agent design. There is more than one credible design.
 - [ ] The extra call's attempts and tokens are counted in the run report and against the batch budget.
 - [ ] The extra call follows the same limits and validation as the first judge call.
 - [ ] The batch summary reports how many completed debates were order-stable, order-sensitive, and not checked, **separately from the for-win rate, which stays based on the official verdict**.
+- [ ] **(Amendment 1)** For every checked debate in a batch, the summary shows the **swapped winner next to the official winner**, and says where each verdict file is, so the evidence before and after swapping is visible without opening files one by one.
 - [ ] Debates run without `--check-order` behave **exactly as they do today**.
 - [ ] Existing tests still pass.
 
@@ -65,6 +66,7 @@ Draft wording, as they would read in `_docs/prd.md` at delivery. Not yet in the 
 - FR-9.8 The official verdict is always the first-order verdict (FR-4). If the two orders disagree, the run is flagged order-sensitive and the official verdict is not changed.
 - FR-9.9 If the swapped judge call fails after its retries, the run does not fail: it keeps its official verdict and the order check is reported as **not completed**.
 - FR-9.10 The FR-8.5 for-win rate is based on the official verdict only. Order sensitivity is reported separately (FR-9.6).
+- FR-9.11 _(Amendment 1)_ For every checked debate, the batch summary shows the swapped winner next to the official winner, and states that each debate's two verdicts are its `decide.md` (official) and `decide_swapped.md` (swapped). A debate whose check did not complete shows no swapped winner.
 
 **Changes to existing requirements** (wording to settle at the design gate)
 - FR-8.6 currently says a skew cannot be told apart from an ordering effect. With order-check data, the summary should say what the data does and does not show. Without it, the sentence stays.
@@ -82,7 +84,22 @@ All five were answered by the user on 2026-09-30, each as proposed:
 
 Nothing else is open. Story approved by the user on 2026-09-30 (gate 1 passed).
 
+## Amendment 1 (2026-09-30)
+
+**Why.** After the first real run of the order check, the user asked where the
+verdicts before and after the swap can be seen, and asked for the swapped
+winner in the summary as "the final evidence". Today the summary shows the
+official winner and a stable / sensitive tag, but not the swapped winner. The
+user has to open each debate's files.
+
+**What changes.** One added acceptance criterion and FR-9.11 (above). Nothing
+else in the story changes.
+
+**Open question for the user.**
+1. When the winner changed (a sensitive debate), should the summary also quote the **first sentence of each verdict's reasoning**, so the reason for the change is visible in the summary too? _Proposal: no, keep the summary compact. The reasoning is one click away in the two files it points to._
+
 ## Change log
+- 2026-09-30: **reopened for Amendment 1** (swapped winner in the summary, FR-9.11). Status back to Draft; re-approval needed. The design and the delivery plan depend on this story and are reopened with it.
 - 2026-09-30: approved by the user (gate 1). Design work may start.
 - 2026-09-30: recorded the user's answers to all five questions (each as proposed), including approval of the complex tier. Added the `--check-order` flag, the official-verdict rule, the failed-check rule and FR-9.8 to 9.10. Story is still Draft: gate 1 needs the user's explicit approval.
 - 2026-09-30: story drafted from backlog item 002. Draft, awaiting the user's answers and approval (gate 1).

@@ -1,9 +1,9 @@
 # 002 — Swapped-Order Judge Check: Delivery Plan
 
 ```
-Status: Approved
-Approved: natank (the user), 2026-09-30
-Design: 02-design.md (Approved, gate 2 passed)
+Status: Draft          (reopened 2026-09-30 for Amendment 1; was Approved)
+Approved: pending      (re-approval needed)
+Design: 02-design.md (reopened, needs re-approval first)
 ```
 
 ## TL;DR
@@ -49,6 +49,7 @@ the summary changes, the CLI flag, and an optional real-model check (about
 | 4 | **Summary changes.** With the check requested: an `Order check` column, an `Order check` section (checked, stable, sensitive with first/last counts, not completed), and the data-aware closing paragraph when at least one check completed. Otherwise the existing FR-8.6 sentence. For-win rate and pair consistency stay on official verdicts. | Tests: column, section and paragraph appear only when the flag was used and a check completed; the counts are right; for-win rate and pairs unchanged by the check; **a batch without the flag produces byte-for-byte the same summary as before**. | 1 | [x] |
 | 5 | **CLI flag.** `--check-order` for a single motion and for `--batch`. The CLI passes `check_order` to `run_debate` **only when the flag is given**. Single run prints the `Order check:` line for all three results; batch progress lines get the `stable` / `sensitive` / `no check` tag and stay within 80 columns; exit codes unchanged. | Tests: the existing CLI tests pass unchanged (their fakes take only `(motion, output_dir)`); the flag reaches every debate in a batch; each `Order check:` line; the tag and line width; a not-completed check leaves the exit code at 0. | 2, 3, 4 | [x] |
 | 6 | **Real check.** Run the existing `motions.txt` (six debates) with `--check-order`, about 3,000 tokens each, so about 18,000 tokens, just inside the default budget. Run only with the user's go-ahead. | Manual review of the results, recorded here (see Deviations). | 5 | [x] |
+| 7 | **Amendment 1: the swapped winner in the summary.** With the check requested, add a `Swapped` column between `Winner` and `Order check` (the swapped winner, or `-`), and the sentence pointing to `decide.md` and `decide_swapped.md` in the `Order check` section. | Tests as in the design's Amendment 1: column only with the flag and in the right position; `-` for not completed, unfinished and pending; matches the swapped verdict; pointer sentence present; **the golden summary without the flag is unchanged**; all existing tests pass. | 4 | [ ] |
 
 **Order of work.** Subtasks 0 and 1 first, in either order (0 changes shared
 code, so the existing tests must keep passing). Then 2, then 3, then 4 (it needs
@@ -87,6 +88,7 @@ documentation commit.
 - [x] `_docs/design/03-capability-contracts.md`: `write_artifact` accepts `decide_swapped`.
 - [x] `_docs/design/04-control-relationships.md`: S4's memory allowlist, the 12-call cap, the rule that S4 never fails the run, and the outer-loop comparison step.
 - [x] `README.md`: the flag, what it reports, and its cost.
+- [ ] _(Amendment 1)_ `_docs/prd.md`: add FR-9.11. `README.md`: mention the `Swapped` column and where the two verdicts are.
 - [x] `CLAUDE.md`: mention the flag and its cost if a new session needs it.
 - [x] `features/README.md`: set this feature's state in the index.
 
@@ -115,5 +117,6 @@ subtasks 0 to 5 need no network or API key; `batch.py` really needs no change.
 - 2026-09-30, subtask 6 (real check): run by the user with `uv run debate --batch motions.txt --check-order --budget 20000` (the same six motions as the feature 001 check). Result: 6 of 6 completed, 24 attempts (4 per debate, so no stage needed a retry), 18,032 tokens (12,070 prompt + 5,962 completion), about 3,005 per debate. That is about 1,010 more than the 1,995 per debate of the earlier unchecked batch, matching the ~1,000 estimate, and it fit the default budget. **Order check: 5 stable, 1 sensitive, 0 not completed.** The one sensitive debate was "Dogs make better pets than cats": official Against, swapped For, so the judge favored the argument it read last. The other five held their winner when the order was swapped. Progress tags, the summary column and section, the closing paragraph, and the shortened long motion all read as designed. **Deviation:** debates took about 14 to 17 seconds each (the first about 22, including start-up), against about 8 to 10 seconds for the unchecked batch, so roughly 8 seconds longer per debate, not the 3 to 4 seconds the design estimated. Still far inside the 5-minute limit; noted for the README wording if speed matters. The pydantic `UserWarning` about function callbacks (see feature 001) still prints once per debate.
 
 ## Change log
+- 2026-09-30: **reopened for Amendment 1**: added subtask 7 and a documentation item. Status back to Draft; re-approval needed.
 - 2026-09-30: approved by the user (gate 3 passed). All three gates passed; delivery starts.
 - 2026-09-30: written after the design was approved. Draft, pending gate 3.
