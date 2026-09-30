@@ -1,8 +1,12 @@
 """Build a batch's summary.md (feature 001). Pure: no model calls, no file writes."""
-from typing import Optional, Sequence
+from __future__ import annotations
 
-from debate_ai.batch import Entry
+from typing import TYPE_CHECKING, Optional, Sequence
+
 from debate_ai.run import RunResult
+
+if TYPE_CHECKING:  # batch.py imports this module, so import Entry for typing only
+    from debate_ai.batch import Entry
 
 SMALL_SAMPLE = 10  # fewer completed runs than this cannot support a conclusion
 
