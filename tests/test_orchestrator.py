@@ -250,3 +250,58 @@ def test_an_exhausted_run_still_reports_the_attempts_it_used(tmp_path):
     assert result.stats["oppose"].total_tokens == 420
     assert "decide" not in result.stats
     assert result.total.attempts == 4
+
+
+# ---- write_summary contract (feature 001) ------------------------------------
+
+from debate_ai.artifacts import write_summary, write_summary_with_retry  # noqa: E402
+
+
+@pytest.mark.parametrize("batch_id", ["", "../x", "a/b", "..", "a..b", ".hidden", "x" * 101])
+def test_write_summary_rejects_unsafe_batch_ids(tmp_path, batch_id):
+    with pytest.raises(InvalidArgument):
+        write_summary(tmp_path, batch_id, "text")
+    assert list(tmp_path.iterdir()) == []
+
+
+def test_write_summary_rejects_empty_content(tmp_path):
+    with pytest.raises(InvalidArgument):
+        write_summary(tmp_path, "b1", "  \n")
+    assert list(tmp_path.iterdir()) == []
+
+
+def test_write_summary_path_is_derived_and_replace_is_idempotent(tmp_path):
+    a = write_summary(tmp_path, "b1", "first")
+    assert a.path == tmp_path / "batch-b1" / "summary.md"
+    b = write_summary(tmp_path, "b1", "second")  # a rewrite replaces, as each debate does
+    assert b.path == a.path and a.path.read_text() == "second"
+    same = write_summary(tmp_path, "b1", "second")
+    assert same.path.read_text() == "second"
+    assert [p.name for p in (tmp_path / "batch-b1").iterdir()] == ["summary.md"]
+
+
+def test_write_summary_reports_write_failed_and_cleans_up(tmp_path):
+    (tmp_path / "batch-b1").mkdir()
+    os.chmod(tmp_path / "batch-b1", 0o500)
+    try:
+        with pytest.raises(WriteFailed):
+            write_summary(tmp_path, "b1", "hello")
+    finally:
+        os.chmod(tmp_path / "batch-b1", 0o700)
+    assert list((tmp_path / "batch-b1").iterdir()) == []
+
+
+def test_write_summary_retries_only_write_failures(tmp_path, monkeypatch):
+    calls = []
+
+    def flaky(src, dst):
+        calls.append(dst)
+        if len(calls) < 3:
+            raise OSError("busy")
+        return os.rename(src, dst)
+
+    monkeypatch.setattr(artifacts.os, "replace", flaky)
+    art = write_summary_with_retry(tmp_path, "b1", "ok", backoff=0)
+    assert len(calls) == 3 and art.path.read_text() == "ok"
+    with pytest.raises(InvalidArgument):  # a bad argument is not retried
+        write_summary_with_retry(tmp_path, "../bad", "ok", backoff=0)
