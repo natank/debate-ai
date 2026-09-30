@@ -197,3 +197,37 @@ leaves the artifacts already written in place.
 - [x] Every human-interface step between two stages is recorded as an outer-loop step (none in v1, 2.2).
 - [x] Any human review after the last stage is recorded as an outer-loop step (none in v1, 2.5, with the stale map for later).
 - [x] The whole run has a defined success, failure and exhausted outcome (section 3).
+
+## 7. Update (feature 002): the order check
+
+With `--check-order` (PRD FR-9), S4 Decide (swapped) runs after S3 (design 01,
+section 7). Without the flag nothing below applies.
+
+**S4's control table**
+
+| | S4 Decide (swapped) |
+|---|---|
+| **Memory** | Reads `motion`, `argument_for`, `argument_against`, in that reversed order. **Never** the verdict. Writes `swapped_verdict`, persisted as `decide_swapped.md`. |
+| **Validation** | The same verdict guardrail as S3. |
+| **Termination** | 3 attempts, 60 s per call. Exhausted means "check not completed", **not** a failed run. |
+| **Human interface** | None. |
+
+**Different failure rule.** S1 to S3 keep their rule: an exhausted stage ends the
+run. S4 does not. If `decide` has completed and been saved, and only
+`decide_swapped` is missing, the run **succeeds** with the check reported as
+not completed. This holds for a swapped verdict rejected 3 times, the time limit
+reached during S4, an error from the call, and a failed write of
+`decide_swapped.md`. A failed write of the official `decide.md` still fails the
+run. The rule is one shared function, asked on every path that ends a run.
+
+**Outer-loop step: compare the verdicts.** The winner is a side, not a position.
+Same winner in both orders is **stable**. A different winner is **sensitive**:
+official `for` then swapped `against` means the judge favored the argument it
+read first; official `against` then `for` means it favored the one it read last.
+The official verdict is never changed. A change of winner is the reading order or
+ordinary variation between judge calls, and one swap cannot separate the two.
+
+**Limits.** The model-call cap is 12 with the check (4 stages, 3 attempts each),
+9 without. The 5-minute wall clock is unchanged. S4's attempts and tokens are
+recorded under `decide_swapped`, so the run report (section 2.5a) and the batch
+budget include them.

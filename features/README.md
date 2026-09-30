@@ -171,7 +171,7 @@ the start of a session.
 | # | Feature | Tier | State |
 |---|---|---|---|
 | 001 | [Batch and bias summary](001-batch-and-bias/) | complex | Delivered (real-model check done by the user, 6 debates) |
-| 002 | [Swapped-order judge check](002-swapped-order-judge/) (separates debater bias from ordering effects) | complex | In delivery (all three gates passed 2026-09-30) |
+| 002 | [Swapped-order judge check](002-swapped-order-judge/) (separates debater bias from ordering effects) | complex | Delivered in code and docs, awaiting PR merge. Real-model check (subtask 6) not run |
 | 003 | Same-order repeat judge check (measures how often the judge changes its answer for no reason, the noise control for 002's order check) | not set | Backlog (no folder until work starts) |
 
 States: Backlog, Proposed, Story approved, Design approved, Planned (all gates passed), In delivery, Delivered, Dropped.
@@ -179,6 +179,6 @@ States: Backlog, Proposed, Story approved, Design approved, Planned (all gates p
 **Work that predates this process** (not migrated unless noted): the core app
 (PRD, `_docs/design/01` to `05`, orchestrator, CLI) and the run report (PRD
 O7 and FR-7, design 04 section 2.5a). The batch and bias summary (PRD O8 and
-FR-8, `_docs/design/06`) was documented but not built. It was migrated into
-`001-batch-and-bias/` and its PRD entries wait there until delivery. The
-drafts remain on the unmerged branch `docs/batch-and-bias` for reference only.
+FR-8) was documented before the workflow existed, then migrated into
+`001-batch-and-bias/` and delivered through it. The old drafts remain on the
+unmerged branch `docs/batch-and-bias` for reference only.

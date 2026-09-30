@@ -34,7 +34,7 @@ run's output folder.
 | Field | Contract |
 |---|---|
 | **Name** | `write_artifact` |
-| **Arguments** | `run_id`: string, identifies the debate run (one folder per run, PRD Q4). `stage`: enum `propose`, `oppose`, `decide`. `content`: string, the validated stage output, already rendered as Markdown. |
+| **Arguments** | `run_id`: string, identifies the debate run (one folder per run, PRD Q4). `stage`: enum `propose`, `oppose`, `decide`, and (feature 002) `decide_swapped`. `content`: string, the validated stage output, already rendered as Markdown. |
 | **Result** | `path`: string, the file written (`output/<run_id>/<stage>.md`). `bytes`: integer written. |
 | **Side effects** | Creates the run folder if missing. Creates or replaces one file. Touches nothing outside `output/<run_id>/`. |
 | **Failure modes** | See section 3. |

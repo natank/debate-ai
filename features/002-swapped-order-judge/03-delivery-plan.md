@@ -81,14 +81,14 @@ design, plan) are the first commits, then one commit per subtask, then the
 documentation commit.
 
 ## Documentation to update (part of delivery)
-- [ ] `_docs/prd.md`: add O9 and FR-9.1 to 9.10 as in the story; rewrite FR-8.6 for when check data exists; mark Q8 as delivered by this feature.
-- [ ] `_docs/design/01-stages-and-sequence.md`: add S4 and its dependency on S1 and S2 only.
-- [ ] `_docs/design/02-reasoning-core-configs.md`: the Judge serves S3 and S4, with the argument order as a per-call parameter.
-- [ ] `_docs/design/03-capability-contracts.md`: `write_artifact` accepts `decide_swapped`.
-- [ ] `_docs/design/04-control-relationships.md`: S4's memory allowlist, the 12-call cap, the rule that S4 never fails the run, and the outer-loop comparison step.
-- [ ] `README.md`: the flag, what it reports, and its cost.
-- [ ] `CLAUDE.md`: mention the flag and its cost if a new session needs it.
-- [ ] `features/README.md`: set this feature's state in the index.
+- [x] `_docs/prd.md`: add O9 and FR-9.1 to 9.10 as in the story; rewrite FR-8.6 for when check data exists; mark Q8 as delivered by this feature.
+- [x] `_docs/design/01-stages-and-sequence.md`: add S4 and its dependency on S1 and S2 only.
+- [x] `_docs/design/02-reasoning-core-configs.md`: the Judge serves S3 and S4, with the argument order as a per-call parameter.
+- [x] `_docs/design/03-capability-contracts.md`: `write_artifact` accepts `decide_swapped`.
+- [x] `_docs/design/04-control-relationships.md`: S4's memory allowlist, the 12-call cap, the rule that S4 never fails the run, and the outer-loop comparison step.
+- [x] `README.md`: the flag, what it reports, and its cost.
+- [x] `CLAUDE.md`: mention the flag and its cost if a new session needs it.
+- [x] `features/README.md`: set this feature's state in the index.
 
 ## Definition of Done
 See `features/README.md`, section 6. Every item applies.
@@ -110,7 +110,9 @@ subtasks 0 to 5 need no network or API key; `batch.py` really needs no change.
 | P5 | Low | The real check costs about 18,000 tokens, which is close to the 20,000 default budget. | **Noted** in subtask 6 and the TL;DR. If a debate runs long the batch may stop one motion early, which is expected behavior. |
 
 ## Deviations
-- none yet
+- 2026-09-30, subtask 4: the design showed one closing paragraph for the case where some checked debates changed winner. The code has four wordings so the sentence stays true for every mix: none changed ("In none of the N checked debates did the winner change..."), some changed ("In K of N..."), all changed ("In all N..."), and a single checked debate ("In the only checked debate..."). Each keeps the same closing sentences about the for-win rate and about rates not being a finding of bias. No requirement changed.
+- 2026-09-30, subtask 3: between the subtask 2 and subtask 3 commits, an exhausted swapped call still ended the run. That was stated in the subtask 2 commit message and closed by subtask 3. Every commit passes all tests.
+- 2026-09-30, subtask 6 (real check) has **not been run**. It calls the OpenAI API (about 18,000 tokens) and needs the user's go-ahead.
 
 ## Change log
 - 2026-09-30: approved by the user (gate 3 passed). All three gates passed; delivery starts.

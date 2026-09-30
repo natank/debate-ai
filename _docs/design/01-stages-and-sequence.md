@@ -98,3 +98,26 @@ their inputs stay the same.
 - [x] Every stage has exactly one responsibility and one output.
 - [x] The sequence is the simplest shape the requirements allow.
 - [ ] Every stage is allocated to one configuration (step 2).
+
+## 7. Update (feature 002): S4 Decide (swapped)
+
+With `--check-order` (PRD FR-9), a fourth stage runs after S3. Without the flag
+the design above is unchanged.
+
+| Field | S4 Decide (swapped) |
+|---|---|
+| **Responsibility** | Decide which side is more convincing, on the same two arguments read in the opposite order. |
+| **Inputs** | The motion, the S1 output, the S2 output, **in swapped order**. It does **not** read the S3 verdict. |
+| **Output** | The swapped verdict (`decide_swapped.md`). |
+| **Capabilities needed** | Write artifact. |
+| **Requirement source** | FR-9 |
+
+```
+   motion ------+--> S1 Propose --+--> S3 Decide ------------> official verdict
+                +--> S2 Oppose  --+
+                                  +--> S4 Decide (swapped) --> order check only
+```
+
+S4 depends on S1 and S2, not on S3. It runs after S3 only because stages run
+one at a time. The two verdicts are compared by the outer loop (design 04,
+section 7). See `features/002-swapped-order-judge/` for the full design.
