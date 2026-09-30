@@ -56,6 +56,32 @@ is not counted, though its tokens are added to the stage's usage.
 uv run pytest               # no API key or network needed
 ```
 
+### Order check: is the verdict about the arguments or the reading order?
+
+The judge always reads the proposition argument first. Add `--check-order` to
+ask it a second time about the same two arguments in the opposite order:
+
+```
+uv run debate "Cats make better pets than dogs" --check-order
+uv run debate --batch motions.txt --check-order
+```
+
+A single debate prints an `Order check:` line after the winner:
+**stable** (the same side won in either order), **order-sensitive** (the winner
+changed, and it says whether the judge favored the argument read first or last),
+or **not completed**. In a batch, each progress line gets a `stable`,
+`sensitive` or `no check` tag, and `summary.md` gains an `Order check` column and
+section. The swapped verdict is saved as `decide_swapped.md`.
+
+- **The official verdict never changes.** The check is extra information. If the
+  swapped call fails, the debate still succeeds and the check reads "not completed".
+- **Cost:** about 1,000 extra tokens per debate. In a batch the default 20,000-token
+  budget then covers about 6 or 7 debates; raise it with `--budget`.
+- **What it can and cannot show:** if the same side wins in both orders, the
+  arguments decided it. If the winner changes, that is the reading order **or
+  ordinary variation between judge calls**, and one swap cannot separate the two.
+  The for-win rate and pair consistency still use the official verdict only.
+
 ## Documents
 
 - `_docs/prd.md`: product requirements
@@ -68,6 +94,6 @@ uv run pytest               # no API key or network needed
 - `src/debate_ai/run.py`: outer control loop (motion entry, limits, outcomes)
 - `src/debate_ai/validation.py`: stage output checks (guardrails)
 - `src/debate_ai/artifacts.py`: the `write_artifact` and `write_summary` capabilities
-- `src/debate_ai/batch.py`: batch input parsing and the driver; `summary.py`: the summary builder
+- `src/debate_ai/batch.py`: batch input parsing and the driver; `summary.py`: the summary builder; `order_check.py`: the order check's result and comparison
 - `features/`: one folder per feature (story, design, delivery plan); see `features/README.md`
 - `tests/`: fake-LLM tests of the orchestrator and of the CrewAI behavior the design relies on

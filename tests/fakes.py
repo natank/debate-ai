@@ -52,10 +52,17 @@ class StageLLM(BaseLLM):
     scripts: dict = {}
     calls: list = []
     stages: list = []
+    delays: dict = {}  # call index (0-based) -> seconds to sleep before answering
+    fail_from: int = -1  # raise on every call from this index on (-1: never)
 
     def call(self, messages, *args, **kwargs):
         text = flatten(messages)
+        index = len(self.calls)
         self.calls.append(text)
+        if 0 <= self.fail_from <= index:
+            raise RuntimeError("boom")
+        if index in self.delays:
+            time.sleep(self.delays[index])
         for marker, replies in self.scripts.items():
             if marker in text:
                 n = sum(s == marker for s in self.stages)
@@ -72,7 +79,7 @@ class StageLLM(BaseLLM):
         return sum(s == marker for s in self.stages)
 
 
-def make_stage_llm(scripts: dict) -> StageLLM:
-    llm = StageLLM(model="fake", scripts=scripts)
+def make_stage_llm(scripts: dict, **kw) -> StageLLM:
+    llm = StageLLM(model="fake", scripts=scripts, **kw)
     llm.calls, llm.stages = [], []
     return llm

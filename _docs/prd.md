@@ -45,6 +45,7 @@ Derived from [1] and [2].
 | O6 | Run on a configurable LLM, `openai/gpt-5.4-mini` by default. | `llm` on both agents [1] |
 | O7 | Report what each run cost: the attempts used and the tokens spent, per stage and in total. | Not in [1] or [2]. Added 2026-09-30 from NFR-4 and the step 4 retry limits. **Documented after it was first implemented**, which broke the process in [3]. |
 | O8 | Measure whether the judge favors a side, by running many motions in one batch and summarizing the results. | Not in [1] or [2]. Serves the side-bias success metric and NFR-1. Delivered by feature 001 (`features/001-batch-and-bias/`). |
+| O9 | Tell whether a verdict depends on the order in which the arguments are presented to the judge. | Not in [1] or [2]. Follows from Q8 and FR-8.6. Delivered by feature 002 (`features/002-swapped-order-judge/`). |
 
 **Success criterion (from [1]):** a debater succeeds when the judge agrees
 with its argument. The product succeeds when both sides get a fair,
@@ -126,9 +127,21 @@ strong case and the verdict is justified by those cases.
   - the **for-win rate** over completed runs;
   - for each pair, whether the judge was **position-consistent** (it picked the same position both times, so the winner flipped from for to against or the reverse) or **not** (it picked the same side of the debate both times);
   - the totals from FR-7.
-- FR-8.6 The summary states that a skew toward one side cannot be told apart from an ordering effect (see Q8), so it reports a rate and does not assert bias.
+- FR-8.6 When no order check was run (FR-9), the summary states that a skew toward one side cannot be told apart from an ordering effect, so it reports a rate and does not assert bias. When the order check was run, the summary reports what it showed and what it cannot show (FR-9.6).
 - FR-8.7 A batch with an empty file, or a file with no usable motions, is rejected before any model call.
 - FR-8.8 While a batch runs, one progress line is printed as each debate finishes, showing its position in the batch, the motion, its winner or outcome, and its tokens. A final line gives the completed count, attempts, tokens and the summary path.
+
+### FR-9: Order check _(feature 002)_
+- FR-9.1 A debate can be run with an order check, requested with `--check-order` (for a single motion, or for every debate in a `--batch`). After the verdict, the judge is asked again about the same two arguments with their order swapped, without seeing the first verdict. Without the flag, no check is made.
+- FR-9.2 The run records both verdicts and whether the winning side's **argument** was the same in both orders (**order-stable**) or not (**order-sensitive**). For a sensitive result it records whether the judge favored the argument it read first or last.
+- FR-9.3 The swapped verdict is saved as an artifact (`decide_swapped.md`).
+- FR-9.4 The extra call's attempts and tokens are included in the FR-7 report and the FR-8.4 budget.
+- FR-9.5 The extra call has the same attempt limit and validation as the first judge call.
+- FR-9.6 The batch summary reports the order-stable and order-sensitive counts, separately from the for-win rate. It says that a change of winner is the reading order or ordinary variation between judge calls, and that the check cannot separate the two.
+- FR-9.7 Without the order check, behavior is unchanged.
+- FR-9.8 The official verdict is always the first-order verdict (FR-4). If the two orders disagree, the run is flagged order-sensitive and the official verdict is not changed.
+- FR-9.9 If the swapped judge call fails after its retries, the run does not fail: it keeps its official verdict and the order check is reported as **not completed**. The same holds if the time limit is reached during the check or the swapped artifact cannot be saved.
+- FR-9.10 The FR-8.5 for-win rate is based on the official verdict only. Order sensitivity is reported separately (FR-9.6).
 
 ## 7. Non-functional requirements
 
@@ -137,7 +150,7 @@ strong case and the verdict is justified by those cases.
 | NFR-1 Fairness | Both sides get the same agent configuration and the same instructions, apart from which side they take. |
 | NFR-2 Impartiality | The judge is told not to use its own views. Its output must cite the arguments it is weighing. |
 | NFR-3 Conciseness | Each argument is concise, per `expected_output` [2]. A target length will be set in design. |
-| NFR-4 Cost | One run uses one model call per task at minimum (3 total), on a small model by default, and at most 9. FR-7 makes the actual cost visible. |
+| NFR-4 Cost | One run uses one model call per task at minimum (3 total), on a small model by default, and at most 9 (12 with the order check, FR-9). FR-7 makes the actual cost visible. The order check adds about 1,000 tokens per debate. |
 | NFR-5 Reproducibility | Output files hold enough to audit a run: the motion, both arguments, and the verdict. |
 | NFR-6 Secrets | The API key is loaded from `.env`, which is excluded from version control. |
 
@@ -150,6 +163,7 @@ strong case and the verdict is justified by those cases.
 | Tokens per debate (from the FR-7 report) | Tracked over a sample of motions. No target set yet. |
 | Verdict gives reasons that refer to the actual arguments | Checked by manual review on a sample set |
 | Side bias: across a balanced motion set, proposition wins ≈ opposition wins | No strong skew toward either side. Measured with the FR-8 batch summary. |
+| Order sensitivity (from the FR-9 summary, when `--check-order` is used) | Tracked over a sample of motions. No target set yet. |
 
 ## 9. Relation to the development process [3]
 
@@ -181,5 +195,5 @@ per-stage design (validation, termination, human interface).
 | Q5 | What is the target length for arguments? | ~200–300 words each. |
 | Q6 | `.env.example` currently holds variables from another project (`PDPA_*`, `MODEL_NAME=gpt-4o-mini`). Which should replace them? | `OPENAI_API_KEY` plus an optional model override matching [1]. |
 | Q7 | The README cites `_docs/agets.yaml`, but the files are at `_docs/config/agents.yaml` and `_docs/config/tasks.yaml`. | Update the README paths. |
-| Q8 | The judge always receives the proposition argument first and the opposition second, so a for-win skew could come from the debaters or from that order. Should the judge also be run with the order swapped? | **Decided:** not in v1. The batch summary reports rates and pair consistency only and says so (FR-8.6). Planned as a later feature (backlog item 002 in `features/README.md`). |
+| Q8 | The judge always receives the proposition argument first and the opposition second, so a for-win skew could come from the debaters or from that order. Should the judge also be run with the order swapped? | **Delivered by feature 002:** `--check-order` (FR-9), opt-in. A single swap cannot separate the reading order from ordinary variation between judge calls, so the summary says so. A same-order repeat to measure that variation is backlog item 003 in `features/README.md`. |
 | Q9 | What should the default batch token budget be? | **Decided:** 20,000 tokens, about 10 debates at the roughly 2,000 measured per debate. Overridable with `--budget`. |

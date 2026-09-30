@@ -10,7 +10,16 @@ import time
 from dataclasses import dataclass
 from pathlib import Path
 
-STAGES = ("propose", "oppose", "decide")
+STAGES = ("propose", "oppose", "decide")  # the stages of a normal run
+CHECK_STAGE = "decide_swapped"  # added by --check-order (feature 002)
+ALL_STAGES = STAGES + (CHECK_STAGE,)  # every stage write_artifact accepts
+
+
+def run_stages(check_order: bool) -> tuple:
+    """The stages one run goes through: three, or four with the order check."""
+    return ALL_STAGES if check_order else STAGES
+
+
 _RUN_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,99}$")
 
 
@@ -58,7 +67,7 @@ def _atomic_write(folder: Path, name: str, content: str, tmp_prefix: str) -> Art
 
 
 def write_artifact(output_dir, run_id: str, stage: str, content: str) -> Artifact:
-    if stage not in STAGES:
+    if stage not in ALL_STAGES:
         raise InvalidArgument(f"unknown stage: {stage!r}")
     _check_id(run_id, "run id")
     _check_content(content)
@@ -99,6 +108,16 @@ def _one_line(text: str) -> str:
 def render_argument(motion: str, side: str, body: str) -> str:
     title = "Argument in favor" if side == "for" else "Argument against"
     return f"# {title}\n\n**Motion:** {_one_line(motion)}\n**Side:** {side.capitalize()}\n\n{body.strip()}\n"
+
+
+def render_swapped_verdict(motion: str, winner: str, reasoning: str) -> str:
+    """The order-check verdict (feature 002). The official verdict is in decide.md."""
+    return (
+        f"# Verdict (arguments in swapped order)\n\n**Motion:** {_one_line(motion)}\n\n"
+        f"**Winner:** {winner.capitalize()}\n\n{reasoning.strip()}\n\n"
+        "_This is the order-check verdict, made with the opposition argument read first. "
+        "The official verdict is in `decide.md`._\n"
+    )
 
 
 def render_verdict(motion: str, winner: str, reasoning: str) -> str:

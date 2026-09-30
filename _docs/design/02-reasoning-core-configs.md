@@ -96,3 +96,11 @@ edited.
 - [x] Every stage is allocated to exactly one reasoning-core configuration.
 - [x] Every capability a stage needs appears on its configuration, or its owner is recorded (write artifact: the control loop).
 - [x] No configuration has a capability none of its stages need.
+
+## 8. Update (feature 002)
+
+No new configuration. The **Judge** now serves S3 and S4 (design 01, section 7).
+The per-call parameters are the same (`motion`, `argument_for`,
+`argument_against`); for S4 the arguments are presented in the opposite order.
+The task text is the existing `decide` task, so the two judge prompts differ
+only in that order (checked by a test). Least capability still holds: no tools.

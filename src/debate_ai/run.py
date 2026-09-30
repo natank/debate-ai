@@ -17,15 +17,18 @@ from typing import Callable, Literal, Optional
 from crewai import LLM, Agent, Crew, Process, Task
 
 from debate_ai.artifacts import (
-    STAGES,
+    CHECK_STAGE,
     render_argument,
+    render_swapped_verdict,
     render_verdict,
+    run_stages,
     write_with_retry,
 )
+from debate_ai.order_check import OrderCheck, compare_verdicts, not_completed
 from debate_ai.validation import Verdict, argument_guardrail, parse_verdict, verdict_guardrail
 
 CONFIG_DIR = Path(__file__).resolve().parents[2] / "_docs" / "config"
-MAX_ATTEMPTS = 3  # first call plus 2 retries, per stage; 3 stages => at most 9 calls
+MAX_ATTEMPTS = 3  # first call plus 2 retries, per stage; 3 stages => at most 9 calls (12 with the order check)
 CALL_TIMEOUT_S = 60
 RUN_TIME_LIMIT_S = 300
 MAX_COMPLETION_TOKENS = 1000
@@ -89,6 +92,7 @@ class RunResult:
     artifacts: dict = field(default_factory=dict)  # stage -> Path
     verdict: Optional[Verdict] = None
     stats: dict = field(default_factory=dict)  # stage -> StageStats
+    order_check: Optional[OrderCheck] = None  # None unless --check-order was requested
 
     @property
     def total(self) -> StageStats:
@@ -130,11 +134,15 @@ def run_debate(
     time_limit: float = RUN_TIME_LIMIT_S,
     write_backoff: float = 0.2,
     now: Optional[datetime] = None,
+    check_order: bool = False,
 ) -> RunResult:
+    """Run one debate. With `check_order`, the judge is asked a second time about the same
+    two arguments in swapped order (feature 002); the official verdict is still the first."""
     motion = (motion or "").strip()
     if not motion:  # FR-1.3: no model call, no folder
         return RunResult("failed", motion, reason="the motion is empty")
 
+    stages = run_stages(check_order)
     run_id = unique_run_id(output_dir, make_run_id(motion, now))
     result = RunResult("failed", motion, run_id=run_id)
     write_errors: dict[str, str] = {}
@@ -162,7 +170,7 @@ def run_debate(
         return callback
 
     crew, tasks, meter = _build_crew(
-        motion, config_dir, llm_factory, saver, cancelled, result.stats
+        motion, config_dir, llm_factory, saver, cancelled, result.stats, check_order
     )
 
     executor = ThreadPoolExecutor(max_workers=1)
@@ -170,16 +178,21 @@ def run_debate(
     try:
         future.result(timeout=time_limit)
     except FutureTimeout:
-        result.outcome = "exhausted"
         cancelled.set()
-        result.reason = f"the run exceeded its {time_limit:g} s limit"
-        result.stage = _next_stage(completed)
         executor.shutdown(wait=False, cancel_futures=True)
+        if _only_check_missing(check_order, completed, write_errors):
+            return _settle_without_check(result, tasks, "the run's time limit was reached")
+        result.outcome = "exhausted"
+        result.reason = f"the run exceeded its {time_limit:g} s limit"
+        result.stage = _next_stage(completed, stages)
         return result  # usage is left as recorded: the abandoned call is still in flight
     except Exception as e:
-        result.stage = _next_stage(completed)
+        result.stage = _next_stage(completed, stages)
         if result.stage:  # tokens from a call that ended in an error, not a check
             meter.record(result.stage, attempt=False)
+        if _only_check_missing(check_order, completed, write_errors):
+            executor.shutdown(wait=False)
+            return _settle_without_check(result, tasks, _check_failure_reason(e))
         result.reason = str(e)
         exhausted = isinstance(e, TimeoutError) or "guardrail validation" in str(e)
         result.outcome = "exhausted" if exhausted else "failed"
@@ -188,9 +201,14 @@ def run_debate(
     executor.shutdown(wait=False)
 
     if write_errors:
+        if check_order and set(write_errors) == {CHECK_STAGE}:
+            return _settle_without_check(result, tasks, "the swapped verdict could not be saved")
         return _with_write_errors(result, write_errors)
     result.outcome = "success"
     result.verdict = parse_verdict(tasks["decide"].output.raw)
+    if check_order:
+        swapped = parse_verdict(tasks[CHECK_STAGE].output.raw)
+        result.order_check = compare_verdicts(result.verdict, swapped)
     return result
 
 
@@ -199,8 +217,45 @@ def _render_verdict(motion: str, raw: str) -> str:
     return render_verdict(motion, v.winner, v.reasoning)
 
 
-def _next_stage(completed: list) -> Optional[str]:
-    return next((s for s in STAGES if s not in completed), None)
+def _only_check_missing(check_order: bool, completed: list, write_errors: dict) -> bool:
+    """True when the official verdict is done and safely saved, and only the order check
+    is missing. The check is extra information, so this must never cost the user a
+    good debate (feature 002, FR-9.9): every path that ends a run asks this first."""
+    return (
+        check_order
+        and "decide" in completed
+        and CHECK_STAGE not in completed
+        and set(write_errors) <= {CHECK_STAGE}
+    )
+
+
+def _check_failure_reason(e: Exception) -> str:
+    if "guardrail validation" in str(e):
+        return f"the swapped verdict was rejected {MAX_ATTEMPTS} times"
+    if isinstance(e, TimeoutError):
+        return "the swapped call timed out"
+    return f"the swapped call failed: {str(e)[:150]}"
+
+
+def _settle_without_check(result: RunResult, tasks: dict, reason: str) -> RunResult:
+    """End the run as a success with its official verdict and a check that did not complete."""
+    result.outcome = "success"
+    result.stage = None
+    result.reason = None
+    result.verdict = parse_verdict(tasks["decide"].output.raw)
+    result.order_check = not_completed(reason)
+    return result
+
+
+def _render_swapped(motion: str, raw: str) -> str:
+    v = parse_verdict(raw)
+    return render_swapped_verdict(motion, v.winner, v.reasoning)
+
+
+def _next_stage(completed: list, stages: tuple) -> Optional[str]:
+    """The first of this run's stages that has not completed. A run uses its own
+    stage list, so a normal run can never name the order-check stage."""
+    return next((s for s in stages if s not in completed), None)
 
 
 def _with_write_errors(result: RunResult, write_errors: dict) -> RunResult:
@@ -212,7 +267,7 @@ def _with_write_errors(result: RunResult, write_errors: dict) -> RunResult:
     return result
 
 
-def _build_crew(motion, config_dir, llm_factory, saver, cancelled, stats):
+def _build_crew(motion, config_dir, llm_factory, saver, cancelled, stats, check_order=False):
     agents_cfg = yaml.safe_load((config_dir / "agents.yaml").read_text())
     tasks_cfg = yaml.safe_load((config_dir / "tasks.yaml").read_text())
 
@@ -271,10 +326,24 @@ def _build_crew(motion, config_dir, llm_factory, saver, cancelled, stats):
             lambda out: _render_verdict(motion, out.raw),
         ),
     )
+    all_tasks = [propose, oppose, decide]
+    named = {"propose": propose, "oppose": oppose, "decide": decide}
+    if check_order:
+        # Feature 002: the same judge task text and guardrail, with the two arguments
+        # in the opposite order. Its context excludes `decide`, so it never sees the
+        # first verdict. Two tasks may share a description: CrewAI tells them apart by id.
+        swapped = task(
+            "decide",
+            context=[oppose, propose],
+            guardrail=checked(CHECK_STAGE, verdict_guardrail),
+            callback=saver(CHECK_STAGE, lambda out: _render_swapped(motion, out.raw)),
+        )
+        all_tasks.append(swapped)
+        named[CHECK_STAGE] = swapped
     crew = Crew(
         agents=list(agents.values()),
-        tasks=[propose, oppose, decide],
+        tasks=all_tasks,
         process=Process.sequential,
         verbose=False,
     )
-    return crew, {"propose": propose, "oppose": oppose, "decide": decide}, meter
+    return crew, named, meter
