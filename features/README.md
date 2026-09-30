@@ -175,7 +175,7 @@ the start of a session.
 | 003 | Same-order repeat judge check (measures how often the judge changes its answer for no reason, the noise control for 002's order check) | not set | Backlog (no folder until work starts) |
 | 004 | Show the swapped winner in the batch summary table, next to the official winner (was Amendment 1 to 002, written but not approved or built; see commit `e029e15`) | not set | Backlog (no folder until work starts) |
 | 005 | Find out where the Against lean comes from: re-judge the saved argument pairs with a different judge model, or regenerate them with a different debater model, or make the two debater prompts symmetric (the debaters and the judge all use `openai/gpt-5.4-mini`, and one model quirk could sit in any role) | not set | Backlog (no folder until work starts) |
-| 006 | [Adopt @CrewBase and move the config into the source](006-crewbase-and-config/) (the config is code, not documentation) | complex | Story approved (gate 1); design in review (gate 2) |
+| 006 | [Adopt @CrewBase and move the config into the source](006-crewbase-and-config/) (the config is code, not documentation) | complex | Story and design approved (gates 1 and 2); plan in review (gate 3) |
 
 States: Backlog, Proposed, Story approved, Design approved, Planned (all gates passed), In delivery, Delivered, Dropped.
 

@@ -1,8 +1,8 @@
 # 006 — Adopt @CrewBase and Move the Config into the Source: Design
 
 ```
-Status: Draft
-Approved: pending
+Status: Approved
+Approved: natank (the user), 2026-09-30
 Story: 01-story.md (Approved, gate 1 passed)
 ```
 
@@ -148,6 +148,8 @@ All with the fake model; no network, no API key.
 
 ## Open decisions for review
 
+**Settled by the user's approval of the design on 2026-09-30, both as recommended:** (1) a separate `crew.py` with the small helper move; (2) `config_dir=None` uses `@CrewBase`'s default lookup beside the class. The original text follows for the record.
+
 1. **Module layout.** A separate `crew.py` with a small helper move (recommended: a clear boundary between how the crew is assembled and the outer loop), or the class inside `run.py` (nothing moves, but `run.py` grows).
 2. **Config folder default.** `config_dir=None` uses `CrewBase`'s own default lookup beside the class (recommended: it exercises the framework convention, which is the point of the feature), or keep an explicit path constant and always pass it.
 
@@ -167,4 +169,5 @@ Checked against the approved story, the prototype, and the code that will change
 | F6 | Low | The story says the YAML stays byte for byte. `git mv` guarantees that. | **Added:** a hash comparison in the plan's checks. |
 
 ## Change log
+- 2026-09-30: approved by the user (gate 2). Both open decisions settled as recommended.
 - 2026-09-30: drafted after the story was approved, with a working prototype and evidence E1 to E9. Draft, pending review and gate 2.
