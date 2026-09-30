@@ -49,7 +49,7 @@ check at the end costs about 6,000 tokens.
 | 3 | **Summary computation.** From a list of run results: per-motion rows, for-win rate, pair consistency (four cases), totals, the fixed limit sentence, the small-sample line, `skipped` rows, and the header line (`in progress (k of N done)` or `complete`). Pure function, no model calls. | Tests: rate with an excluded exhausted run; all four pair cases and the not-analyzed case; limit sentence present; small-sample line under 10 runs; skipped rows shown; both header states. | - | [x] |
 | 4 | **Batch driver.** Run motions sequentially through `run_debate` into the batch folder, continue past failed runs, check the budget between runs, list skipped motions, and rewrite the summary after every debate (`in progress`, then `complete`). The driver takes the debate function and the model factory as parameters (defaulting to `run_debate` and the real model), so tests can inject fakes. | Tests: three succeed; one exhausted continues; budget passed after run two skips run three; an interrupt during run two leaves a valid `in progress` summary. | 0, 1, 2, 3 | [x] |
 | 5 | **CLI `--batch` flag.** `debate --batch FILE` with `--budget` and `--output-dir`, exit codes 0, 1 and 2, a progress line as each debate finishes (FR-8.8) and a final line, with the streams as in the design's interface section. Existing single-motion command unchanged. | CLI tests for each exit code; parsing (`--batch` alone, a motion alone, neither, both, `--budget` without `--batch`, and the one-word motion `batch` as an ordinary motion); progress line format, shortening and order; stdout and stderr split; and a test that `debate "<motion>"` still works. | 4 | [x] |
-| 6 | **Real check.** One small batch (a pair and one single motion) against the real model, to confirm the flow and the summary read sensibly. Three debates, about 6,000 tokens at the roughly 2,000 measured per debate, which is within the 20,000 default budget. Not priced in currency. Run only with the user's go-ahead. | Manual review of `summary.md` recorded in Deviations or here. | 5 | [ ] |
+| 6 | **Real check.** One small batch (a pair and one single motion) against the real model, to confirm the flow and the summary read sensibly. Three debates, about 6,000 tokens at the roughly 2,000 measured per debate, which is within the 20,000 default budget. Not priced in currency. Run only with the user's go-ahead. | Manual review of `summary.md` recorded in Deviations or here. | 5 | [x] |
 
 **Order of work.** Subtask 0 first, because it changes shared code and the
 existing tests must keep passing. Then 1, 2 and 3 in any order (they do not
@@ -84,7 +84,7 @@ follow.
 - [x] `_docs/design/03-capability-contracts.md`: add the `write_summary` contract.
 - [x] `features/README.md`: also remove backlog item 002 from Backlog only if it has been started; otherwise leave it.
 - [x] `README.md`: document `debate --batch`, the file format, the budget, and the summary.
-- [x] `features/README.md`: set this feature's state in the index (Delivered in code and docs, awaiting PR merge; subtask 6 not run).
+- [x] `features/README.md`: set this feature's state in the index (Delivered in code and docs, awaiting PR merge; real-model check done).
 - [x] `CLAUDE.md`: add `debate --batch` to the commands if it adds anything a new session needs.
 
 ## Review (2026-09-30)
@@ -111,6 +111,7 @@ one PR as the user decided; subtasks 0 to 5 need no network or API key.
 See `features/README.md`, section 6. Every item applies.
 
 ## Deviations
+- 2026-09-30, subtask 6 (real check): run by the user, not by the agent, on a different file than planned: two pairs and two single motions (6 debates) instead of one pair and one single (3). Result: 6 of 6 completed, 18 attempts (3 per debate, so no stage needed a retry), 11,970 tokens (7,257 prompt + 4,713 completion), about 8 to 9 seconds per debate. The token total matched the ~12,000 estimate. Progress lines, the summary and the exit path worked as designed. Findings: both pairs came out *not consistent* (the judge chose Against on both halves of each pair), and the two single motions went For, giving a for-win rate of 2 of 6. Six runs cannot support a conclusion, and the summary said so. Separately, a pydantic `UserWarning` ("function callbacks cannot be serialized and will prevent checkpointing") is printed to stderr once per debate. It predates this feature (it comes from CrewAI task callbacks and also appears in single runs) and is not in scope here.
 - 2026-09-30, subtask 3: while a batch is in progress, motions not yet started show `pending` in the summary, and become `skipped` only once the batch is complete. The design said only `skipped`; `pending` is more accurate for an interrupted batch and changes no requirement.
 
 ## Change log

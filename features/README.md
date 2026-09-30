@@ -170,7 +170,7 @@ the start of a session.
 
 | # | Feature | Tier | State |
 |---|---|---|---|
-| 001 | [Batch and bias summary](001-batch-and-bias/) | complex | Delivered in code and docs, awaiting PR merge. Subtask 6 (optional real-model check) not run |
+| 001 | [Batch and bias summary](001-batch-and-bias/) | complex | Delivered in code and docs, awaiting PR merge. Real-model check done (user, 6 debates) |
 | 002 | Swapped-order judge check (separates debater bias from ordering effects; adds a second judge call and a step 2 change) | not set | Backlog (no folder until work starts) |
 
 States: Backlog, Proposed, Story approved, Design approved, Planned (all gates passed), In delivery, Delivered, Dropped.
