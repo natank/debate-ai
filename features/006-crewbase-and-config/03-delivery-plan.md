@@ -1,8 +1,8 @@
 # 006 — Adopt @CrewBase and Move the Config into the Source: Delivery Plan
 
 ```
-Status: Draft
-Approved: pending
+Status: Approved
+Approved: natank (the user), 2026-09-30
 Design: 02-design.md (Approved, gate 2 passed)
 ```
 
@@ -101,4 +101,5 @@ subtasks 0 to 4 need no network or API key.
 - none yet
 
 ## Change log
+- 2026-09-30: approved by the user (gate 3 passed). All three gates passed; delivery starts.
 - 2026-09-30: written after the design was approved. Draft, pending gate 3.
