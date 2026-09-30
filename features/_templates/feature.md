@@ -3,6 +3,7 @@
 ```
 Status: Draft
 Tier: simple        (tier approved by <name> on <date>, or "pending")
+Kind: product | tooling   (see features/README.md, "Feature kind")
 Approved: pending
 ```
 
