@@ -1,9 +1,9 @@
 # 001 — Batch and Bias Summary: Design
 
 ```
-Status: Draft
-Approved: pending
-Story: 01-story.md (must be Approved before this is worked on)
+Status: Approved
+Approved: natank (the user), 2026-09-30
+Story: 01-story.md (Approved, gate 1 passed)
 ```
 
 _Migrated from `_docs/design/06-batch-and-bias-check.md` on branch
@@ -101,12 +101,12 @@ output/
 ### Interface
 
 ```
-debate batch motions.txt [--budget 20000] [--output-dir output]
+debate --batch motions.txt [--budget 20000] [--output-dir output]
 ```
 
 The existing `debate "<motion>"` command is unchanged.
 
-**How the command is parsed.** The current CLI takes one positional `motion`, so a naive `debate batch motions.txt` would be read as the motion "batch" plus an unexpected extra argument. The design: if the first argument is exactly `batch`, the command is batch mode and requires a file (`debate batch` alone prints usage and exits 2). Anything else is a single motion, as today. The one thing this rules out is debating the one-word motion "batch", which is not a debatable statement. Alternative considered: a flag, `debate --batch motions.txt`. It has no ambiguity but reads less naturally. _Needs the user's choice at this gate (see Review, R2)._
+**How the command is parsed.** _(Decided by the user on 2026-09-30: a flag.)_ The current CLI takes one positional `motion`. A batch is selected with the `--batch FILE` flag, so there is no ambiguity with a motion. `motion` becomes optional, and exactly one of `motion` and `--batch` must be given: neither, or both, prints usage and exits 2. `--budget` is only valid with `--batch` (otherwise usage, exit 2). `--output-dir` works in both modes, as today. Considered and rejected: a `batch` subcommand, which would make the one-word motion "batch" impossible to debate.
 
 The examples below are
 **mockups** of the intended layout. The numbers are made up.
@@ -136,7 +136,7 @@ Remote work is better than office work
 **Complete batch:**
 
 ```
-$ debate batch motions.txt
+$ debate --batch motions.txt
 [1/3] Cats make better pets than dogs ............ For      2,010 tokens
 [2/3] Dogs make better pets than cats ............ Against  1,985 tokens
 [3/3] Remote work is better than office work ..... For      2,040 tokens
@@ -172,7 +172,7 @@ Summary: output/batch-20260930-101500/summary.md                      (exit code
 **Bad file:** parsed and validated before any model call:
 
 ```
-$ debate batch bad.txt
+$ debate --batch bad.txt
 Line 3: a pair uses one "|" (found 2). No debates were run.           (exit code 2, stderr)
 ```
 
@@ -225,7 +225,7 @@ to `summary.md`.
 - **Capability contracts (design 03):** unchanged. `write_summary` is a new sibling, documented here and added to design 03 at delivery.
 - **Control relationships (design 04):** unchanged. The batch driver is a new outer loop above the run.
 - **Framework mapping (design 05):** unchanged. CrewAI is used only inside each run, as today.
-- **Code:** `run_debate` is called with its existing arguments. Two small changes: (1) `run.py` makes each run's folder unique (see Review, R1), and (2) `artifacts.py` gains `write_summary`. `cli.py` gains batch mode. `validation.py` is unchanged.
+- **Code:** `run_debate` is called with its existing arguments. Two small changes: (1) `run.py` makes each run's folder unique (see Review, R1), and (2) `artifacts.py` gains `write_summary`. `cli.py` gains the `--batch` flag. `validation.py` is unchanged.
 
 ## Agent system design
 Not applicable: no change to stages, configurations, or the model calls
@@ -263,11 +263,11 @@ All with the fake model; no network, no API key.
 | Malformed pair sides | `A \|`, `\| B` and `\|` alone are each rejected with their line number and no model call. |
 | Unique run folders | Two identical motions run in the same second produce two different run folders, and neither overwrites the other. |
 | Interrupted batch | If the second debate raises `KeyboardInterrupt`, a valid `summary.md` exists covering the first debate and reads `in progress`. |
-| Batch command parsing | `debate batch motions.txt` is batch mode; `debate batch` alone exits 2 with usage; `debate "some motion"` is a single run. |
+| Batch command parsing | `debate --batch motions.txt` is batch mode; `debate "some motion"` is a single run; neither, or both, exits 2 with usage; `--budget` without `--batch` exits 2; the one-word motion `debate batch` is an ordinary single motion. |
 | Single-motion command | Behaves as before. |
 
 ## Open decisions for review
-None. The user's answers on 2026-09-30 settled all three:
+None. Design approved by the user on 2026-09-30 (gate 2 passed). The user's answers on 2026-09-30 settled all three:
 1. Pair syntax: `A | B` on one line.
 2. Default budget: 20,000 tokens.
 3. The swapped-order judge check is a later feature (backlog 002), not part of this design.
@@ -289,7 +289,7 @@ will call (`run.py`, `cli.py`, `artifacts.py`).
 | # | Severity | Finding | Disposition |
 |---|---|---|---|
 | R1 | Medium | `make_run_id` is deterministic to the second and truncates the motion to 40 characters. Two debates with the same first 40 characters started in the same second would share a folder, and the second would overwrite the first. The design encourages repeated motions, and a fast failure could finish within a second. Silent data loss is unacceptable in a measurement tool. | **Fixed in this design:** `run.py` appends `-2`, `-3`, ... when the run folder already exists. Small change, with a test. |
-| R2 | Medium | `debate batch FILE` conflicts with the CLI's single positional `motion`. | **Design chosen, needs the user's choice:** subcommand form, detected by the first argument being `batch`. Alternative: a `--batch FILE` flag. |
+| R2 | Medium | Adding a batch command to the CLI's single positional `motion` is ambiguous if done as a `batch` subcommand. | **Resolved by the user (2026-09-30): a `--batch FILE` flag.** No ambiguity, and every one-word motion still works. |
 | R3 | Medium | `summary.md` was written only at the end, so an interrupted batch left nothing, contradicting "results already written stay on disk". | **Fixed:** the summary is rewritten atomically after every debate. |
 | R4 | Low | Pair lines with an empty side (`A \|`) were not treated as malformed, and would have run an empty motion. | **Fixed:** malformed rule extended, with tests. |
 | R5 | Low | The fixed "ordering effect" sentence had no test row. | **Fixed:** test row added. |
@@ -300,6 +300,7 @@ will call (`run.py`, `cli.py`, `artifacts.py`).
 behavior is depended on, so no pre-build test against CrewAI is needed.
 
 ## Change log
+- 2026-09-30: R2 resolved by the user: the command is `debate --batch FILE`. All examples, parsing rules and tests updated. **Design approved by the user (gate 2 passed).**
 - 2026-09-30: design review. Fixes R1, R3, R4, R5 applied; R2 (CLI form) awaits the user's choice; R6, R7 recorded. Still Draft, pending gate 2.
 - 2026-09-30: default budget set to 20,000 tokens, and the pair syntax `A | B` confirmed, per the user's answers to the story's open questions. Still Draft.
 - 2026-09-30: replaced the interface section with progress lines (FR-8.8) and mockups of every case. Still Draft, so no gate was reopened.
