@@ -1,8 +1,8 @@
 # 001 — Batch and Bias Summary: Delivery Plan
 
 ```
-Status: Draft
-Approved: pending
+Status: Approved
+Approved: natank (the user), 2026-09-30
 Design: 02-design.md (Approved, gate 2 passed)
 ```
 
@@ -114,6 +114,7 @@ See `features/README.md`, section 6. Every item applies.
 - none yet
 
 ## Change log
+- 2026-09-30: approved by the user (gate 3 passed). All three gates passed; delivery may start.
 - 2026-09-30: added the TL;DR at the top. No change to scope. Still Draft.
 - 2026-09-30: plan review. Fixes P1 to P7 applied. Still Draft, pending gate 3 approval.
 - 2026-09-30: CLI form is the `--batch` flag (design approved). Still Draft.
