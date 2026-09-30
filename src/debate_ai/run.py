@@ -6,7 +6,6 @@ Stage-level retry and validation are delegated to CrewAI guardrails.
 """
 import re
 import threading
-import yaml
 from concurrent.futures import ThreadPoolExecutor
 from concurrent.futures import TimeoutError as FutureTimeout
 from dataclasses import dataclass, field
@@ -14,21 +13,13 @@ from datetime import datetime
 from pathlib import Path
 from typing import Callable, Literal, Optional
 
-from crewai import LLM, Agent, Crew, Process, Task
+from crewai import LLM
 
-from debate_ai.artifacts import CHECK_STAGE, render_argument, run_stages, write_with_retry
-from debate_ai.crew import (
-    MAX_ATTEMPTS,
-    RunCancelled,
-    StageStats,
-    _render_swapped,
-    _render_verdict,
-    _UsageMeter,
-)
+from debate_ai.artifacts import CHECK_STAGE, run_stages, write_with_retry
+from debate_ai.crew import MAX_ATTEMPTS, DebateCrew, StageStats
 from debate_ai.order_check import OrderCheck, compare_verdicts, not_completed
-from debate_ai.validation import Verdict, argument_guardrail, parse_verdict, verdict_guardrail
+from debate_ai.validation import Verdict, parse_verdict
 
-CONFIG_DIR = Path(__file__).resolve().parent / "config"  # inside the package, so it ships with it
 CALL_TIMEOUT_S = 60
 RUN_TIME_LIMIT_S = 300
 MAX_COMPLETION_TOKENS = 1000
@@ -85,7 +76,7 @@ def run_debate(
     *,
     output_dir="output",
     llm_factory: Callable[[str], object] = default_llm_factory,
-    config_dir: Path = CONFIG_DIR,
+    config_dir: Optional[Path] = None,  # None: the config beside crew.py
     time_limit: float = RUN_TIME_LIMIT_S,
     write_backoff: float = 0.2,
     now: Optional[datetime] = None,
@@ -124,9 +115,18 @@ def run_debate(
 
         return callback
 
-    crew, tasks, meter = _build_crew(
-        motion, config_dir, llm_factory, saver, cancelled, result.stats, check_order
+    crew_builder = DebateCrew(
+        motion=motion,
+        llm_factory=llm_factory,
+        saver=saver,
+        cancelled=cancelled,
+        stats=result.stats,
+        check_order=check_order,
+        config_dir=config_dir,
     )
+    crew = crew_builder.crew()
+    tasks = crew_builder.stage_tasks()
+    meter = crew_builder.meter
 
     executor = ThreadPoolExecutor(max_workers=1)
     future = executor.submit(crew.kickoff, inputs={"motion": motion})
@@ -210,85 +210,3 @@ def _with_write_errors(result: RunResult, write_errors: dict) -> RunResult:
         result.stage = stage
         result.reason = f"artifact write failed: {message}"
     return result
-
-
-def _build_crew(motion, config_dir, llm_factory, saver, cancelled, stats, check_order=False):
-    agents_cfg = yaml.safe_load((config_dir / "agents.yaml").read_text())
-    tasks_cfg = yaml.safe_load((config_dir / "tasks.yaml").read_text())
-
-    llms = {name: llm_factory(cfg["llm"]) for name, cfg in agents_cfg.items()}
-    agents = {
-        name: Agent(
-            **{**cfg, "llm": llms[name]},
-            allow_delegation=False,
-            memory=False,
-            verbose=False,
-        )
-        for name, cfg in agents_cfg.items()
-    }
-    meter = _UsageMeter(llms.values(), stats)
-
-    def checked(stage, guardrail):
-        def wrapper(output):
-            if cancelled.is_set():
-                raise RunCancelled("the run was cancelled after its time limit")
-            meter.record(stage)
-            return guardrail(output)
-
-        return wrapper
-
-    def task(name, **extra):
-        cfg = {k: v for k, v in tasks_cfg[name].items() if k != "agent"}
-        return Task(
-            **cfg,
-            agent=agents[tasks_cfg[name]["agent"]],
-            guardrail_max_retries=MAX_ATTEMPTS - 1,
-            **extra,
-        )
-
-    # context=[] keeps S2 blind to S1 (design step 4 scoping, test 1).
-    propose = task(
-        "propose",
-        context=[],
-        guardrail=checked("propose", argument_guardrail),
-        callback=saver("propose", lambda out: render_argument(motion, "for", out.raw)),
-    )
-    oppose = task(
-        "oppose",
-        context=[],
-        guardrail=checked("oppose", argument_guardrail),
-        callback=saver("oppose", lambda out: render_argument(motion, "against", out.raw)),
-    )
-    decide = task(
-        "decide",
-        context=[propose, oppose],
-        # No output_pydantic: with it, only the first bad reply is retried and a
-        # second one raises a raw ValidationError (test 5). The guardrail validates
-        # the JSON and we parse it ourselves.
-        guardrail=checked("decide", verdict_guardrail),
-        callback=saver(
-            "decide",
-            lambda out: _render_verdict(motion, out.raw),
-        ),
-    )
-    all_tasks = [propose, oppose, decide]
-    named = {"propose": propose, "oppose": oppose, "decide": decide}
-    if check_order:
-        # Feature 002: the same judge task text and guardrail, with the two arguments
-        # in the opposite order. Its context excludes `decide`, so it never sees the
-        # first verdict. Two tasks may share a description: CrewAI tells them apart by id.
-        swapped = task(
-            "decide",
-            context=[oppose, propose],
-            guardrail=checked(CHECK_STAGE, verdict_guardrail),
-            callback=saver(CHECK_STAGE, lambda out: _render_swapped(motion, out.raw)),
-        )
-        all_tasks.append(swapped)
-        named[CHECK_STAGE] = swapped
-    crew = Crew(
-        agents=list(agents.values()),
-        tasks=all_tasks,
-        process=Process.sequential,
-        verbose=False,
-    )
-    return crew, named, meter

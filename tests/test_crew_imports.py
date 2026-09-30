@@ -21,8 +21,9 @@ def test_imports_work_in_any_order_in_a_fresh_interpreter(code):
     assert result.returncode == 0, result.stderr
 
 
-def test_the_moved_names_are_the_same_objects_from_either_module():
-    for name in ("StageStats", "RunCancelled", "MAX_ATTEMPTS", "_UsageMeter", "_render_verdict", "_render_swapped"):
+def test_the_names_other_code_imports_from_run_are_the_same_objects_as_in_crew():
+    # StageStats is imported from run by cli.py, summary.py and many tests; it must keep working.
+    for name in ("StageStats", "MAX_ATTEMPTS"):
         assert getattr(run, name) is getattr(crew, name), name
 
 

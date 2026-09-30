@@ -36,7 +36,7 @@ def test_nothing_under_src_refers_to_the_docs_folder():
     assert offenders == []
 
 
-def test_the_default_config_folder_used_by_a_run_is_the_package_folder():
-    from debate_ai import run
+def test_the_crew_class_looks_for_its_config_in_the_package_folder():
+    from debate_ai.crew import DebateCrew
 
-    assert Path(run.CONFIG_DIR).resolve() == CONFIG
+    assert (Path(DebateCrew.base_directory) / "config").resolve() == CONFIG
