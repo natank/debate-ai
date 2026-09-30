@@ -22,6 +22,7 @@ from debate_ai.artifacts import (
     run_stages,
     write_with_retry,
 )
+from debate_ai.order_check import OrderCheck
 from debate_ai.validation import Verdict, argument_guardrail, parse_verdict, verdict_guardrail
 
 CONFIG_DIR = Path(__file__).resolve().parents[2] / "_docs" / "config"
@@ -89,6 +90,7 @@ class RunResult:
     artifacts: dict = field(default_factory=dict)  # stage -> Path
     verdict: Optional[Verdict] = None
     stats: dict = field(default_factory=dict)  # stage -> StageStats
+    order_check: Optional[OrderCheck] = None  # None unless --check-order was requested
 
     @property
     def total(self) -> StageStats:
