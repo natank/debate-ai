@@ -17,16 +17,18 @@ from typing import Callable, Literal, Optional
 from crewai import LLM, Agent, Crew, Process, Task
 
 from debate_ai.artifacts import (
+    CHECK_STAGE,
     render_argument,
+    render_swapped_verdict,
     render_verdict,
     run_stages,
     write_with_retry,
 )
-from debate_ai.order_check import OrderCheck
+from debate_ai.order_check import OrderCheck, compare_verdicts
 from debate_ai.validation import Verdict, argument_guardrail, parse_verdict, verdict_guardrail
 
 CONFIG_DIR = Path(__file__).resolve().parents[2] / "_docs" / "config"
-MAX_ATTEMPTS = 3  # first call plus 2 retries, per stage; 3 stages => at most 9 calls
+MAX_ATTEMPTS = 3  # first call plus 2 retries, per stage; 3 stages => at most 9 calls (12 with the order check)
 CALL_TIMEOUT_S = 60
 RUN_TIME_LIMIT_S = 300
 MAX_COMPLETION_TOKENS = 1000
@@ -132,12 +134,15 @@ def run_debate(
     time_limit: float = RUN_TIME_LIMIT_S,
     write_backoff: float = 0.2,
     now: Optional[datetime] = None,
+    check_order: bool = False,
 ) -> RunResult:
+    """Run one debate. With `check_order`, the judge is asked a second time about the same
+    two arguments in swapped order (feature 002); the official verdict is still the first."""
     motion = (motion or "").strip()
     if not motion:  # FR-1.3: no model call, no folder
         return RunResult("failed", motion, reason="the motion is empty")
 
-    stages = run_stages(False)  # the check_order flag chooses four stages (feature 002)
+    stages = run_stages(check_order)
     run_id = unique_run_id(output_dir, make_run_id(motion, now))
     result = RunResult("failed", motion, run_id=run_id)
     write_errors: dict[str, str] = {}
@@ -165,7 +170,7 @@ def run_debate(
         return callback
 
     crew, tasks, meter = _build_crew(
-        motion, config_dir, llm_factory, saver, cancelled, result.stats
+        motion, config_dir, llm_factory, saver, cancelled, result.stats, check_order
     )
 
     executor = ThreadPoolExecutor(max_workers=1)
@@ -194,12 +199,20 @@ def run_debate(
         return _with_write_errors(result, write_errors)
     result.outcome = "success"
     result.verdict = parse_verdict(tasks["decide"].output.raw)
+    if check_order:
+        swapped = parse_verdict(tasks[CHECK_STAGE].output.raw)
+        result.order_check = compare_verdicts(result.verdict, swapped)
     return result
 
 
 def _render_verdict(motion: str, raw: str) -> str:
     v = parse_verdict(raw)
     return render_verdict(motion, v.winner, v.reasoning)
+
+
+def _render_swapped(motion: str, raw: str) -> str:
+    v = parse_verdict(raw)
+    return render_swapped_verdict(motion, v.winner, v.reasoning)
 
 
 def _next_stage(completed: list, stages: tuple) -> Optional[str]:
@@ -217,7 +230,7 @@ def _with_write_errors(result: RunResult, write_errors: dict) -> RunResult:
     return result
 
 
-def _build_crew(motion, config_dir, llm_factory, saver, cancelled, stats):
+def _build_crew(motion, config_dir, llm_factory, saver, cancelled, stats, check_order=False):
     agents_cfg = yaml.safe_load((config_dir / "agents.yaml").read_text())
     tasks_cfg = yaml.safe_load((config_dir / "tasks.yaml").read_text())
 
@@ -276,10 +289,24 @@ def _build_crew(motion, config_dir, llm_factory, saver, cancelled, stats):
             lambda out: _render_verdict(motion, out.raw),
         ),
     )
+    all_tasks = [propose, oppose, decide]
+    named = {"propose": propose, "oppose": oppose, "decide": decide}
+    if check_order:
+        # Feature 002: the same judge task text and guardrail, with the two arguments
+        # in the opposite order. Its context excludes `decide`, so it never sees the
+        # first verdict. Two tasks may share a description: CrewAI tells them apart by id.
+        swapped = task(
+            "decide",
+            context=[oppose, propose],
+            guardrail=checked(CHECK_STAGE, verdict_guardrail),
+            callback=saver(CHECK_STAGE, lambda out: _render_swapped(motion, out.raw)),
+        )
+        all_tasks.append(swapped)
+        named[CHECK_STAGE] = swapped
     crew = Crew(
         agents=list(agents.values()),
-        tasks=[propose, oppose, decide],
+        tasks=all_tasks,
         process=Process.sequential,
         verbose=False,
     )
-    return crew, {"propose": propose, "oppose": oppose, "decide": decide}, meter
+    return crew, named, meter

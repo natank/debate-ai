@@ -110,6 +110,16 @@ def render_argument(motion: str, side: str, body: str) -> str:
     return f"# {title}\n\n**Motion:** {_one_line(motion)}\n**Side:** {side.capitalize()}\n\n{body.strip()}\n"
 
 
+def render_swapped_verdict(motion: str, winner: str, reasoning: str) -> str:
+    """The order-check verdict (feature 002). The official verdict is in decide.md."""
+    return (
+        f"# Verdict (arguments in swapped order)\n\n**Motion:** {_one_line(motion)}\n\n"
+        f"**Winner:** {winner.capitalize()}\n\n{reasoning.strip()}\n\n"
+        "_This is the order-check verdict, made with the opposition argument read first. "
+        "The official verdict is in `decide.md`._\n"
+    )
+
+
 def render_verdict(motion: str, winner: str, reasoning: str) -> str:
     return (
         f"# Verdict\n\n**Motion:** {_one_line(motion)}\n\n"
