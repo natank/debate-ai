@@ -4,14 +4,14 @@ An agentic debate app: two debaters and a judge, built on CrewAI. See `README.md
 
 ## How features are added: read this first
 
-**Read `features/README.md` before starting, changing or continuing any feature.**
+**Read `_docs/features/README.md` before starting, changing or continuing any feature.**
 It defines the required workflow: a story, a design and a delivery plan, each
 behind an explicit user approval gate, with the tier (simple or complex)
 approved by the user by hand. Documentation (including `_docs/prd.md`) is part
 of delivery and ships in the same PR as the code. Do not write feature code
 before the gates in that file are passed.
 
-To resume work, read `features/README.md` (section 8), then the feature's folder.
+To resume work, read `_docs/features/README.md` (section 8), then the feature's folder.
 
 ## Working rules
 
@@ -25,6 +25,6 @@ To resume work, read `features/README.md` (section 8), then the feature's folder
 
 ## Where things are
 
-- `_docs/prd.md`: requirements as delivered. `_docs/design/`: the original agent-system design.
+- `_docs/prd.md`: requirements as delivered. `_docs/design/`: the original agent-system design. `_docs/features/`: the feature workflow and one folder per feature (story, design, plan).
 - `src/debate_ai/`: `run.py` (outer loop), `crew.py` (the `@CrewBase` crew), `validation.py`, `artifacts.py`, `cli.py`, `batch.py` and `summary.py` (batch runs), and `order_check.py` (the order check).
 - `src/debate_ai/config/`: `agents.yaml` and `tasks.yaml`, which the crew loads. They are code, not documentation.

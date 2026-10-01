@@ -74,11 +74,11 @@ own against the baseline.
 - [x] `_docs/prd.md`: the config path in the source references [1] and [2]. No requirement changes.
 - [x] `README.md` and `CLAUDE.md`: the config path, and `crew.py` in the layout.
 - [x] `_docs/design/02-reasoning-core-configs.md`: the config path.
-- [x] `features/002-swapped-order-judge/01-story.md`: the reference to the config folder.
-- [x] `features/README.md`: set this feature's state in the index.
+- [x] `_docs/features/002-swapped-order-judge/01-story.md`: the reference to the config folder.
+- [x] `_docs/features/README.md`: set this feature's state in the index.
 
 ## Definition of Done
-See `features/README.md`, section 6. Every item applies.
+See `_docs/features/README.md`, section 6. Every item applies.
 
 ## Review (2026-09-30)
 

@@ -120,4 +120,4 @@ the design above is unchanged.
 
 S4 depends on S1 and S2, not on S3. It runs after S3 only because stages run
 one at a time. The two verdicts are compared by the outer loop (design 04,
-section 7). See `features/002-swapped-order-judge/` for the full design.
+section 7). See `_docs/features/002-swapped-order-judge/` for the full design.
