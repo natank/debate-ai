@@ -82,9 +82,9 @@ follow.
 ## Documentation to update (part of delivery)
 - [x] `_docs/prd.md`: add O8, FR-8 (**8.1 to 8.8**, including the progress lines), the resolved Q8 and Q9 as decided in the story (later feature 002; 20,000-token budget), and the note on the side-bias metric, exactly as written in the story.
 - [x] `_docs/design/03-capability-contracts.md`: add the `write_summary` contract.
-- [x] `features/README.md`: also remove backlog item 002 from Backlog only if it has been started; otherwise leave it.
+- [x] `_docs/features/README.md`: also remove backlog item 002 from Backlog only if it has been started; otherwise leave it.
 - [x] `README.md`: document `debate --batch`, the file format, the budget, and the summary.
-- [x] `features/README.md`: set this feature's state in the index (Delivered; real-model check done).
+- [x] `_docs/features/README.md`: set this feature's state in the index (Delivered; real-model check done).
 - [x] `CLAUDE.md`: add `debate --batch` to the commands if it adds anything a new session needs.
 
 ## Review (2026-09-30)
@@ -108,7 +108,7 @@ one PR as the user decided; subtasks 0 to 5 need no network or API key.
 | P7 | Low | The documentation list had no explicit rule for the backlog item 002 entry. | **Fixed:** left alone unless started. |
 
 ## Definition of Done
-See `features/README.md`, section 6. Every item applies.
+See `_docs/features/README.md`, section 6. Every item applies.
 
 ## Deviations
 - 2026-09-30, subtask 6 (real check): run by the user, not by the agent, on a different file than planned: two pairs and two single motions (6 debates) instead of one pair and one single (3). Result: 6 of 6 completed, 18 attempts (3 per debate, so no stage needed a retry), 11,970 tokens (7,257 prompt + 4,713 completion), about 8 to 9 seconds per debate. The token total matched the ~12,000 estimate. Progress lines, the summary and the exit path worked as designed. Findings: both pairs came out *not consistent* (the judge chose Against on both halves of each pair), and the two single motions went For, giving a for-win rate of 2 of 6. Six runs cannot support a conclusion, and the summary said so. Separately, a pydantic `UserWarning` ("function callbacks cannot be serialized and will prevent checkpointing") is printed to stderr once per debate. It predates this feature (it comes from CrewAI task callbacks and also appears in single runs) and is not in scope here.

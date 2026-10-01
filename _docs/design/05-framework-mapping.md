@@ -210,5 +210,5 @@ handles and which stay in application code. The outer loop, validation, artifact
 writing, the run report and the order check are still application code in
 `run.py`.
 
-See `features/006-crewbase-and-config/` for the story, design and delivery plan.
+See `_docs/features/006-crewbase-and-config/` for the story, design and delivery plan.
 

@@ -96,5 +96,5 @@ section. The swapped verdict is saved as `decide_swapped.md`.
 - `src/debate_ai/validation.py`: stage output checks (guardrails)
 - `src/debate_ai/artifacts.py`: the `write_artifact` and `write_summary` capabilities
 - `src/debate_ai/batch.py`: batch input parsing and the driver; `summary.py`: the summary builder; `order_check.py`: the order check's result and comparison
-- `features/`: one folder per feature (story, design, delivery plan); see `features/README.md`
+- `_docs/features/`: one folder per feature (story, design, delivery plan); see `_docs/features/README.md`
 - `tests/`: fake-LLM tests of the orchestrator and of the CrewAI behavior the design relies on

@@ -88,10 +88,10 @@ documentation commit.
 - [x] `_docs/design/04-control-relationships.md`: S4's memory allowlist, the 12-call cap, the rule that S4 never fails the run, and the outer-loop comparison step.
 - [x] `README.md`: the flag, what it reports, and its cost.
 - [x] `CLAUDE.md`: mention the flag and its cost if a new session needs it.
-- [x] `features/README.md`: set this feature's state in the index.
+- [x] `_docs/features/README.md`: set this feature's state in the index.
 
 ## Definition of Done
-See `features/README.md`, section 6. Every item applies.
+See `_docs/features/README.md`, section 6. Every item applies.
 
 ## Review (2026-09-30)
 

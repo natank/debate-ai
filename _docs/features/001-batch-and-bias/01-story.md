@@ -57,7 +57,7 @@ As they will read in `_docs/prd.md`. Applied at delivery, not before.
 - "Side bias: across a balanced motion set, proposition wins ≈ opposition wins" gains: "Measured with the FR-8 batch summary."
 
 **Open questions to add**
-- **Q8** The judge always receives the proposition argument first and the opposition second. A for-win skew could come from the debaters, or from that order. Should the judge also be run with the order swapped? _Decided 2026-09-30: not in this feature. It is planned as a later feature (backlog item 002 in `features/README.md`). Here the summary reports the rate and pair consistency only, and says so (FR-8.6)._
+- **Q8** The judge always receives the proposition argument first and the opposition second. A for-win skew could come from the debaters, or from that order. Should the judge also be run with the order swapped? _Decided 2026-09-30: not in this feature. It is planned as a later feature (backlog item 002 in `_docs/features/README.md`). Here the summary reports the rate and pair consistency only, and says so (FR-8.6)._
 - **Q9** _(Resolved 2026-09-30)_ The default token budget is 20,000 tokens. At about 2,000 per debate (measured on 2 real runs), that allows roughly 10 debates. The user can raise it with `--budget`.
 
 ## Open questions

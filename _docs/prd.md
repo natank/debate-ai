@@ -44,8 +44,8 @@ Derived from [1] and [2].
 | O5 | Keep every debate output as a readable artifact. | `output_file` on every task [2] |
 | O6 | Run on a configurable LLM, `openai/gpt-5.4-mini` by default. | `llm` on both agents [1] |
 | O7 | Report what each run cost: the attempts used and the tokens spent, per stage and in total. | Not in [1] or [2]. Added 2026-09-30 from NFR-4 and the step 4 retry limits. **Documented after it was first implemented**, which broke the process in [3]. |
-| O8 | Measure whether the judge favors a side, by running many motions in one batch and summarizing the results. | Not in [1] or [2]. Serves the side-bias success metric and NFR-1. Delivered by feature 001 (`features/001-batch-and-bias/`). |
-| O9 | Tell whether a verdict depends on the order in which the arguments are presented to the judge. | Not in [1] or [2]. Follows from Q8 and FR-8.6. Delivered by feature 002 (`features/002-swapped-order-judge/`). |
+| O8 | Measure whether the judge favors a side, by running many motions in one batch and summarizing the results. | Not in [1] or [2]. Serves the side-bias success metric and NFR-1. Delivered by feature 001 (`_docs/features/001-batch-and-bias/`). |
+| O9 | Tell whether a verdict depends on the order in which the arguments are presented to the judge. | Not in [1] or [2]. Follows from Q8 and FR-8.6. Delivered by feature 002 (`_docs/features/002-swapped-order-judge/`). |
 
 **Success criterion (from [1]):** a debater succeeds when the judge agrees
 with its argument. The product succeeds when both sides get a fair,
@@ -195,5 +195,5 @@ per-stage design (validation, termination, human interface).
 | Q5 | What is the target length for arguments? | ~200–300 words each. |
 | Q6 | `.env.example` currently holds variables from another project (`PDPA_*`, `MODEL_NAME=gpt-4o-mini`). Which should replace them? | `OPENAI_API_KEY` plus an optional model override matching [1]. |
 | Q7 | The README cites `_docs/agets.yaml`, but the files are at `_docs/config/agents.yaml` and `_docs/config/tasks.yaml`. (Feature 006 later moved them to `src/debate_ai/config/`.) | Update the README paths. |
-| Q8 | The judge always receives the proposition argument first and the opposition second, so a for-win skew could come from the debaters or from that order. Should the judge also be run with the order swapped? | **Delivered by feature 002:** `--check-order` (FR-9), opt-in. A single swap cannot separate the reading order from ordinary variation between judge calls, so the summary says so. A same-order repeat to measure that variation is backlog item 003 in `features/README.md`. |
+| Q8 | The judge always receives the proposition argument first and the opposition second, so a for-win skew could come from the debaters or from that order. Should the judge also be run with the order swapped? | **Delivered by feature 002:** `--check-order` (FR-9), opt-in. A single swap cannot separate the reading order from ordinary variation between judge calls, so the summary says so. A same-order repeat to measure that variation is backlog item 003 in `_docs/features/README.md`. |
 | Q9 | What should the default batch token budget be? | **Decided:** 20,000 tokens, about 10 debates at the roughly 2,000 measured per debate. Overridable with `--budget`. |

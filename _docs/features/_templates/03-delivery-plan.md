@@ -17,10 +17,10 @@ Design: 02-design.md (must be Approved before this is worked on)
 
 ## Documentation to update (part of delivery)
 - [ ] `_docs/prd.md`: <FR/NFR/objective/question/metric entries>
-- [ ] <design docs, README, feature index in `features/README.md`>
+- [ ] <design docs, README, feature index in `_docs/features/README.md`>
 
 ## Definition of Done
-See `features/README.md`, section 6. Every item applies.
+See `_docs/features/README.md`, section 6. Every item applies.
 
 ## Deviations
 - <date>: <what changed from the plan, and why>

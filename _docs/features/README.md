@@ -25,8 +25,10 @@ features pass them one at a time, in three documents.
 | `_docs/prd.md` | Product requirements, **as currently delivered**. Updated as part of delivery (section 6). |
 | `_docs/design/01` to `05` | The original agentic system design (stages, configurations, contracts, control, framework). Reference for later designs. |
 | `_docs/agentic-systems-and-workflows.md` | The general design process and checklist that feature designs draw on. |
-| `features/NNN-slug/` | One folder per feature: its story, design and delivery plan. This is the history and the record of decisions. |
-| `features/_templates/` | Templates for the documents below. Copy them, do not edit them in place. |
+| `_docs/features/NNN-slug/` | One folder per feature: its story, design and delivery plan. This is the history and the record of decisions. |
+| `_docs/features/_templates/` | Templates for the documents below. Copy them, do not edit them in place. |
+
+_The `features/` folder was at the repository root until 2026-10-01, when the user moved it into `_docs/` so that everything that documents the project sits in one place. Commit messages and change-log entries from before then may still say `features/`._
 
 ## 2. The tiers
 
@@ -54,7 +56,7 @@ costs more than writing one extra document.
 ## 3. Folder layout and naming
 
 ```
-features/
+_docs/features/
   README.md
   _templates/
   001-batch-and-bias/
@@ -157,7 +159,7 @@ of delivery, not a follow-up.
 
 A new session should be able to continue any feature from the files alone:
 
-1. Read this file, then `features/<the feature>/` in order.
+1. Read this file, then `_docs/features/<the feature>/` in order.
 2. The status headers say which gates are passed. The delivery plan's
    checkboxes say what is built.
 3. Open questions and the change log say what is still undecided.
